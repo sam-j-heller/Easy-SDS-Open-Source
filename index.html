@@ -24,7 +24,17 @@ body {
 }
 
 /* ---------- Two-panel layout ---------- */
-.app { display: flex; height: 100vh; }
+.oss-banner {
+  height: 32px; box-sizing: border-box; padding: 0 14px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: #1f6f43; color: #fff; font-size: 12px; letter-spacing: 0.3px;
+  white-space: nowrap; overflow: hidden;
+}
+.oss-banner strong { font-weight: 800; letter-spacing: 1px; }
+.oss-banner .oss-tag { background: rgba(255,255,255,0.2); border-radius: 3px; padding: 2px 7px; font-weight: 800; font-size: 11px; }
+.oss-banner a { color: #fff; font-weight: 700; }
+@media (max-width: 760px) { .oss-banner .oss-extra { display: none; } }
+.app { display: flex; height: calc(100vh - 32px); }
 .form-panel {
   width: 30%;
   min-width: 300px;
@@ -894,6 +904,8 @@ body[data-sticker-size="ol475lp"] .sheet-slot { width: 4in; height: 5in; }
    PRINT MODE — page size injected dynamically by JS per mode.
    ============================================================ */
 @media print {
+  .oss-banner { display: none !important; }
+  .app { height: 100vh; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
   html, body { background: #fff; height: auto; overflow: visible; }
   .app { display: block; height: auto; }
@@ -948,6 +960,13 @@ body[data-sticker-size="ol475lp"] .sheet-slot { width: 4in; height: 5in; }
 <script src="https://accounts.google.com/gsi/client" onload="initGIS()" async defer></script>
 </head>
 <body>
+<div class="oss-banner">
+  <span class="oss-tag">OPEN SOURCE</span>
+  <strong>EASY SDS</strong>
+  <span class="oss-extra">Free community edition — no account needed, your data stays in your browser.</span>
+  <a class="oss-extra" href="https://github.com/sam-j-heller/Easy-SDS-Open-Source" target="_blank" rel="noopener">View on GitHub</a>
+  <a class="oss-extra" href="https://sam-j-heller.github.io/SDSLabelGenerator/" target="_blank" rel="noopener">Need accounts &amp; approvals? Get full Easy SDS →</a>
+</div>
 
 <div class="app">
 
