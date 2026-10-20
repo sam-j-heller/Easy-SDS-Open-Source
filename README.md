@@ -1,4 +1,4 @@
-# Quick Label — Chemical Safety Label Generator
+# Easy SDS (Open Source) — Chemical Safety Label Generator
 
 A free, browser-based tool for generating GHS-compliant chemical safety labels with live preview. No installation, no account, no downloads required.
 
@@ -8,11 +8,12 @@ A free, browser-based tool for generating GHS-compliant chemical safety labels w
 
 ## What It Does
 
-Quick Label generates print-ready chemical safety labels in three formats:
+Easy SDS generates print-ready chemical safety labels in these formats:
 
-- **Full Label** — 10 × 7.5 in (letter landscape, fits a full sheet)
-- **Sticker Label** — 3 × 4 in (small container / secondary label)
-- **Sticker Sheet** — four 3×4 stickers scaled to fill a single 8.5×11 sheet for bulk printing
+- **Full Label** — landscape label that fills a full sheet
+- **Sticker Label** — 3 × 4 in, or 4 × 5 in for OL475LP label stock
+- **Sticker Sheet** — four stickers laid out on one sheet for bulk printing, plus a **Test 1×** option that prints only the first slot so you can check alignment without wasting a sheet
+- **Paper size** — Letter, A4, or SRA3
 
 Both label formats include all six GHS label elements required under OSHA's HazCom 2012 standard, plus NFPA 704 and HMIS rating systems for workplace use.
 
@@ -39,7 +40,7 @@ Save and reload chemicals you use regularly. The library is stored in your brows
 - **Arrow keys ↑ ↓** — navigate the list; Enter to select, Escape to close
 - **✓ checkmark** — indicates the currently loaded chemical
 - **Remove Selected** — appears after a chemical is loaded; deletes it from the library
-- **+ Save Current to Library** — saves the current form as a new entry (or overwrites if the product name matches)
+- **+ Save Current to Library** — saves the current form as a new entry (or overwrites if the product name matches). If the name is very close to an existing chemical (for example a typo or a variant spelling), you get a **Possible Duplicate** warning and can go back or save anyway.
 
 > **Google Drive Sync** — Click **Connect Google Drive** to sync your library across devices. Your library is stored as `chem_label_library.json` in your Drive. Local and remote libraries are merged on sign-in — no data is overwritten. If you're self-hosting this tool, Drive sync needs your own Google OAuth Client ID first — see [Setting Up Google Drive Sync](#setting-up-google-drive-sync-optional) below.
 
@@ -64,7 +65,7 @@ Select the appropriate GHS signal word:
 ---
 
 ### Hazard Information
-Enter **Hazard Statements** and **Precautionary Statements** from the SDS, one per line. On the full label, statements are automatically split into two columns to make better use of space.
+Enter **Hazard Statements** and **Precautionary Statements** from the SDS, one per line, in the single Hazard Information box. (Older exported labels and libraries with a separate precautionary field are merged into this box on import.) A warning appears under the box if the text is too long to fit the printed label. On the full label, statements are automatically split into two columns to make better use of space.
 
 **Example:**
 ```
@@ -141,7 +142,7 @@ The color-coded bar system used for daily worker safety. HMIS uses the same 0–
 | J | Splash Goggles + Gloves + Apron + Dust & Vapor Respirator |
 | K | Air-Line Hood/Mask + Gloves + Full Suit + Boots |
 
-**Additional PPE** — Automatically computed from the selected HMIS code by removing baseline facility PPE (safety glasses, gloves) that all employees already wear. This appears in the sticker footer and the GHS Hazards Present bar on the full label. Can be manually overridden if needed.
+**Additional PPE** — Automatically computed from the selected HMIS code by removing baseline facility PPE (safety glasses, gloves) that all employees already wear. This appears in the sticker footer and the GHS Hazards Present bar on the full label. Type in the field to override it; clear the field to go back to the automatic value.
 
 > Baseline facility PPE requirements always apply regardless of HMIS code.
 
@@ -153,7 +154,7 @@ Fills the bottom-right section of the label. All fields are optional but **Compa
 
 | Field | Example |
 |---|---|
-| **Company Logo** | Upload an image (PNG, JPG, SVG) — appears top-right on the full label and bottom-left on the sticker |
+| **Company Logo** | Upload an image (PNG, JPG, SVG) — appears top-right on the full label and bottom-left on the sticker. Use **Remove logo** to clear it. |
 | Company Name | Acme Manufacturing |
 | Address | 123 Warehouse Blvd, Richmond, VA 23220 |
 | Emergency Phone | 1-800-424-9300 (CHEMTREC) |
@@ -164,11 +165,16 @@ The logo is stored in your browser's local storage and persists between sessions
 
 ---
 
+### Favorites
+**★ Favorites** (next to the print controls) keeps a short list of labels you reprint often. Click **★ Favorite** to pin the current form, click a favorite to load it, and use the ✕ to remove it. Favorites are stored in your browser.
+
+---
+
 ## Printing
 
 1. Click **Print / Save as PDF** (red button at the top of the form)
 2. In your browser's print dialog:
-   - Set paper size to **Letter** and orientation to **Landscape** (for the full label)
+   - Set paper size to match the **Letter / A4 / SRA3** button you selected, and orientation to **Landscape** (for the full label)
    - Set margins to **None**
    - Enable **Background graphics** so colors print correctly
 3. Print, or choose **Save as PDF** to get a file
@@ -183,9 +189,11 @@ Use the buttons below the print button to switch between formats:
 
 | Button | Format |
 |---|---|
-| **Full (10×7.5in)** | Full-size landscape label |
-| **Sticker (3×4in)** | Single sticker, portrait |
-| **Sheet 4×** | Sub-option under Sticker — four stickers on one letter sheet, scaled for cutting |
+| **Full Label** | Full-size landscape label |
+| **Sticker** | Single sticker, portrait, in **3×4in** or **4×5in (OL475LP)** |
+| **Sheet 4×** | Sub-option under Sticker — four stickers on one sheet |
+| **Test 1×** | Sub-option under Sticker — prints only the first slot of the sheet for an alignment check |
+| **Letter / A4 / SRA3** | Paper size for the print page |
 
 The preview and print output switch together.
 
@@ -193,7 +201,7 @@ The preview and print output switch together.
 
 ## Export / Import
 
-The **Export / Import** dropdown (green button) offers four options:
+The **Export / Import** dropdown (green button) offers these options:
 
 | Option | What it does |
 |---|---|
@@ -201,6 +209,7 @@ The **Export / Import** dropdown (green button) offers four options:
 | **Import label from JSON** | Loads a previously exported label `.json` back into the form |
 | **Export full library** | Saves your entire chemical library as a `.json` file. Prompts for your name and auto-includes the export date in the filename. |
 | **Import into library** | Merges a library `.json` into your current library — skips any chemical whose name already exists |
+| **Save HTML with Library** | Downloads a copy of this page with your library baked in, so you can hand it to someone else. On first open it merges into their library without overwriting anything they already have. |
 
 ---
 
@@ -263,7 +272,8 @@ Additionally, the label includes:
 
 ## Technical Notes
 
-- Single-file HTML — no frameworks, no dependencies, no server
+- Single-file HTML — no frameworks, no dependencies, no server, no account or sign-in
+- Feature-matched to the hosted Easy SDS label tool. Facility accounts, the approval workflow, the admin console, and the restricted-chemicals list need a backend and are not part of this version.
 - All data stays in your browser (localStorage) unless you connect Google Drive
 - Works in Chrome, Edge, Firefox, and Safari
 - Pictograms are rendered as inline SVG — no external image files needed

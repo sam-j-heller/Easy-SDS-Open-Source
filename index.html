@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Quick Label — Chemical Safety Label</title>
+<link rel="icon" href="data:,">
+<title>Easy SDS — Open Source</title>
 <style>
 /* ============================================================
-   QUICK LABEL — Chemical Safety Label Generator
+   EASY SDS
    Single-file vanilla HTML/CSS/JS, no dependencies, no images.
    ------------------------------------------------------------
    Layout: form (30%) + live letter-landscape preview (70%).
@@ -72,25 +73,6 @@ body {
   text-transform: uppercase;
 }
 .print-btn:hover { background: #e23838; }
-.drive-btn {
-  display: block;
-  width: 100%;
-  margin-top: 8px;
-  background: #0066cc;
-  color: #fff;
-  border: 0;
-  padding: 10px 14px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  cursor: pointer;
-  border-radius: 3px;
-  text-transform: uppercase;
-  text-align: center;
-  text-decoration: none;
-  box-sizing: border-box;
-}
-.drive-btn:hover { background: #0055aa; }
 .clear-btn {
   width: 100%; background: #555; color: #fff; border: 0;
   padding: 9px 14px; font-size: 12px; font-weight: 700;
@@ -103,7 +85,7 @@ body {
   width: 100%; background: #2a6b3f; color: #fff; border: 0;
   padding: 10px 14px; font-size: 13px; font-weight: 700;
   letter-spacing: 1px; cursor: pointer; border-radius: 3px;
-  text-transform: uppercase; display: flex; justify-content: space-between; align-items: center;
+  text-transform: uppercase; display: flex; justify-content: center; align-items: center; gap: 6px;
 }
 .export-btn:hover { background: #358a50; }
 .export-menu {
@@ -112,13 +94,13 @@ body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 20; overflow: hidden;
 }
 .export-menu.open { display: block; }
-.export-menu button {
+.export-menu > button {
   width: 100%; background: none; border: 0; border-bottom: 1px solid #eee;
   padding: 10px 14px; font-size: 12px; font-weight: 600;
   text-align: left; cursor: pointer; color: #222;
 }
-.export-menu button:last-child { border-bottom: 0; }
-.export-menu button:hover { background: #f0f0f0; }
+.export-menu > button:last-child { border-bottom: 0; }
+.export-menu > button:hover { background: #f0f0f0; }
 .sync-btn {
   float: right; background: #0066cc; color: #fff; border: 0;
   padding: 2px 7px; font-size: 9px; font-weight: 700;
@@ -127,6 +109,27 @@ body {
 }
 .sync-btn:hover { background: #0055aa; }
 .lib-row { display: flex; gap: 6px; margin-top: 4px; }
+.lib-combo { position: relative; margin-top: 4px; }
+.lib-combo input {
+  width: 100%; padding: 5px 6px; font-size: 12px; box-sizing: border-box;
+  border: 1px solid #b0b0b0; border-radius: 3px; background: #fff; color: #333;
+  font-family: inherit;
+}
+.lib-combo input:focus { outline: none; border-color: #0066cc; }
+.lib-combo-list {
+  display: none; position: fixed; z-index: 9999;
+  background: #fff; border: 1px solid #0066cc; border-top: none;
+  border-radius: 0 0 3px 3px; max-height: 210px; overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.lib-combo-item {
+  padding: 6px 10px; font-size: 12px; color: #333; cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+}
+.lib-combo-item:last-child { border-bottom: none; }
+.lib-combo-item.focused { background: #e8f0ff; color: #0055cc; }
+.lib-combo-item.selected { font-weight: 700; color: #0055cc; }
+.lib-combo-item.selected::before { content: '✓  '; }
 .lib-load-btn {
   padding: 5px 10px; font-size: 11px; font-weight: 700; white-space: nowrap;
   cursor: pointer; border-radius: 3px; border: 0;
@@ -139,6 +142,18 @@ body {
   background: #cc0000; color: #fff;
 }
 .lib-del-btn:hover { background: #aa0000; }
+.inline-banner {
+  border-radius: 3px; padding: 7px 10px; font-size: 11px; font-weight: 600;
+  margin-top: 6px; display: none; line-height: 1.4;
+}
+.banner-success { background: #1a3d24; color: #6cd98a; border: 1px solid #2d6640; }
+.banner-error   { background: #3d1a1a; color: #f08080; border: 1px solid #6d3030; }
+.banner-warn    { background: #3d2010; color: #e08844; border: 1px solid #6d3820; }
+.field-truncation-warn {
+  font-size: 10px; font-weight: 700; line-height: 1.4;
+  color: #e08844; background: #3d2010; border: 1px solid #6d3820;
+  border-radius: 3px; padding: 5px 8px; margin-top: 4px;
+}
 .lib-save-btn {
   width: 100%; margin-top: 6px; padding: 7px; font-size: 11px; font-weight: 700;
   cursor: pointer; border-radius: 3px; border: 0;
@@ -191,37 +206,46 @@ body {
   cursor: pointer;
   color: #222;
 }
-.pic-list input { margin-right: 6px; }
+.pic-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px 4px;
+}
+.pic-list input { margin-right: 4px; }
 
 /* ============================================================
-   LABEL PREVIEW (10in × 7.5in — matches print dimensions)
-   .label-outer is sized by JS to the *scaled* footprint so the
-   preview panel can center it correctly via flex.
+   LABEL PREVIEW
+   Default: Letter landscape effective print area (10.7 × 8.2in)
+   = 11in paper minus 0.15in margins each side.
+   A4 landscape effective: 11.39 × 7.97in.
+   Print uses size:landscape + 100vw/100vh to fill any paper.
    ============================================================ */
 .label-outer {
   position: relative;
-  /* Fit the label inside the preview panel while keeping the
-     true 10:7.5 (= 4:3) letter-landscape aspect ratio.
-     100cqi/100cqb are the panel's content-area width/height. */
-  width: min(calc(100cqi - 16px), calc((100cqb - 16px) * 10 / 7.5));
-  aspect-ratio: 10 / 7.5;
+  /* Letter landscape (default) */
+  width: min(calc(100cqi - 16px), calc((100cqb - 16px) * 10.7 / 8.2));
+  aspect-ratio: 10.7 / 8.2;
+}
+body[data-paper="a4"] .label-outer {
+  width: min(calc(100cqi - 16px), calc((100cqb - 16px) * 11.39 / 7.97));
+  aspect-ratio: 11.39 / 7.97;
 }
 .label-wrap {
   position: absolute;
   top: 0;
   left: 0;
-  width: 10in;
-  height: 7.5in;
+  width: 10.7in;
+  height: 8.2in;
   transform-origin: top left;
 }
 .label {
-  width: 10in;
-  height: 7.5in;
+  width: 10.7in;
+  height: 8.2in;
   background: #fff;
   border: 4px solid #000;
   display: grid;
   /* product | middle (NFPA/GHS/Signal+HMIS) | NFPA rating guide | bottom */
-  grid-template-rows: 0.55in 1fr 1.55in 1.25in;
+  grid-template-rows: 0.55in 4.45in 1.55in 1fr;
   font-family: Arial, Helvetica, sans-serif;
   color: #000;
   box-shadow: 0 6px 24px rgba(0,0,0,0.35);
@@ -234,14 +258,16 @@ body {
   border-bottom: 3px solid #000;
   padding: 0 0.2in;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 0.2in;
 }
 .zone-product .plabel {
   font-size: 11pt; font-weight: 700; letter-spacing: 1px; white-space: nowrap;
+  display: flex; align-items: center;
 }
 .zone-product .pvalue {
-  font-size: 26pt; font-weight: 900; flex: 1; line-height: 1; letter-spacing: -0.5px; word-break: break-word;
+  font-size: 36pt; font-weight: 900; flex: 1; line-height: 1.1; letter-spacing: -0.5px;
+  overflow: hidden; display: flex; flex-direction: column; justify-content: center;
 }
 
 /* ---------- Middle row: NFPA | GHS | Signal+HMIS ----------
@@ -257,15 +283,22 @@ body {
 
 /* ---------- Zone 2: NFPA 704 (dominant, left) ---------- */
 .nfpa-zone {
+  position: relative;
   border-right: 2px solid #000;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.08in 0.08in 0.1in;
+  padding: 0.36in 0.08in 0.1in;
   gap: 4px;
 }
 .nfpa-zone .nlabel {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 0.32in;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 12pt; font-weight: 900; letter-spacing: 3px;
 }
 .nfpa-svg {
@@ -287,6 +320,10 @@ body {
   align-items: center;
   justify-content: center;
   padding: 0.36in 0.1in 0.08in 0.1in;
+}
+.product-logo {
+  height: 0.38in; max-width: 1.6in;
+  object-fit: contain; margin-left: auto; flex-shrink: 0; align-self: center;
 }
 .pic-edge-label {
   position: absolute;
@@ -342,23 +379,23 @@ body {
 }
 
 /* ---------- Zone 4: Signal Word + HMIS (narrow right column) ---------- */
-.sigh-zone { display: grid; grid-template-rows: auto 1fr; min-height: 0; }
+.sigh-zone { display: grid; grid-template-rows: auto 1fr; min-height: 0; overflow: hidden; }
 .signal-zone {
   border-bottom: 3px solid #000;
   padding: 0.08in 0.1in 0.1in;
   text-align: center;
 }
 .signal-zone .slabel { font-size: 8pt; font-weight: 800; letter-spacing: 2.5px; color: #555; }
-.signal-zone .sword  { font-size: 32pt; font-weight: 900; line-height: 1; margin-top: 3px; letter-spacing: -1px; }
+.signal-zone .sword  { font-size: 27pt; font-weight: 900; line-height: 1; margin-top: 3px; letter-spacing: -1px; }
 .signal-zone .sword.danger  { color: #b00000; }
 .signal-zone .sword.warning { color: #d2691e; }
 .signal-zone .sword.none {
-  color: #4a6b3a;        /* muted green — neutral, non-alarming */
-  font-size: 16pt;       /* smaller so it doesn't shout */
+  color: #4a6b3a;
+  font-size: 16pt;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
   margin-top: 8px;
-  white-space: nowrap;   /* keep on one line in the narrow column */
+  word-break: break-word;
 }
 
 .hmis-zone { padding: 0.08in 0.1in; display: flex; flex-direction: column; min-height: 0; }
@@ -368,7 +405,7 @@ body {
 }
 .hmis-row {
   display: flex; align-items: stretch; flex: 1; min-height: 22px;
-  border-left: 1px solid #000; border-right: 1px solid #000; border-bottom: 1px solid #000;
+  border: 1px solid #000; margin-top: -1px;
 }
 .hmis-row .lab {
   flex: 1; display: flex; align-items: center;
@@ -407,32 +444,36 @@ body {
   border-bottom: 1px solid #000;
   line-height: 1.15;
 }
-.key-title {
-  font-size: 9pt;
-  font-weight: 900;
-  letter-spacing: 1.5px;
-  white-space: nowrap;
-}
-.key-explain {
+.key-note {
   font-size: 6.5pt;
   font-weight: 400;
   letter-spacing: 0.2px;
   color: #f0f0f0;
-  flex: 1;
-  text-align: right;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
-.key-explain b { font-weight: 900; color: #fff; }
+.key-note b { font-weight: 900; color: #fff; }
+.key-arrow {
+  flex: 1;
+  text-align: center;
+  font-size: 9pt;
+  color: #666;
+}
 .ghs-shown-line {
   background: #f4f4f4;
-  padding: 2px 0.12in;
   border-bottom: 1px solid #000;
   display: flex;
-  gap: 6px;
-  align-items: baseline;
+  align-items: center;
   line-height: 1.2;
+  min-height: 0.2in;
+}
+.ghs-shown-line .ghs-left {
+  flex: 3; display: flex; gap: 6px; align-items: baseline;
+  padding: 0 0.12in; overflow: hidden;
+}
+.ghs-shown-line .ghs-right {
+  flex: 0 0 33.333%; border-left: 1px solid #ccc;
+  display: flex; gap: 5px; align-items: baseline; flex-wrap: wrap;
+  padding: 0 0.1in;
 }
 .ghs-shown-line .klabel {
   font-weight: 900;
@@ -443,8 +484,9 @@ body {
   white-space: nowrap;
 }
 .ghs-shown-line .ktext {
-  font-size: 8pt;
+  font-size: 7pt;
   color: #000;
+  line-height: 1.25;
 }
 .nfpa-guide {
   display: grid;
@@ -507,6 +549,9 @@ body {
 .zone-bottom {
   display: grid;
   grid-template-columns: 50% 25% 25%;
+  grid-auto-rows: 1fr;
+  min-height: 0;
+  overflow: hidden;
 }
 .hp-info, .supplier-info {
   padding: 0.08in 0.12in;
@@ -527,27 +572,27 @@ body {
 }
 .fa-box {
   flex: 1;
-  padding: 0.06in 0.12in;
+  padding: 0.08in 0.12in;
   display: flex;
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
 }
-.fa-box.ppe-box {
-  border-top: 2px solid #000;
-  background: #fff7e0;   /* subtle highlight so PPE catches the eye */
-}
-.fa-box.ppe-box h4 { color: #6a0000; }
 .hp-info h4, .fa-box h4, .supplier-info h4 {
-  margin: 0 0 4px 0; font-size: 9pt; letter-spacing: 1.5px;
+  margin: 0 0 4px 0; font-size: 9pt; line-height: 1; letter-spacing: 1.5px;
   text-transform: uppercase; font-weight: 800;
   border-bottom: 1px solid #000; padding-bottom: 2px;
 }
 .hp-info .htxt, .hp-info .ptxt, .fa-box .fatxt {
   font-size: 8.5pt; line-height: 1.25; margin: 2px 0; white-space: pre-wrap;
+  flex: 1; min-height: 0; overflow: hidden;
 }
+.hp-info .htxt { display: block; }
+.hp-info .htxt.htxt-two-col { column-count: 2; column-gap: 0.18in; }
+.hp-info .htxt .htxt-line { break-inside: avoid; }
 .hp-info .pl { font-weight: 800; }
-.supplier-info .srow { font-size: 8.5pt; line-height: 1.3; }
+.supplier-info { font-size: 8.5pt; }
+.supplier-info .srow { font-size: inherit; line-height: 1.3; }
 .supplier-info .srow b { font-weight: 800; }
 
 /* ============================================================
@@ -563,35 +608,108 @@ body {
   text-transform: uppercase;
 }
 .mode-btn.active { background: #e6a000; border-color: #e6a000; color: #000; }
+/* Sheet sub-options — shown under Sticker button in sticker & sheet modes */
+.sheet-subopts { display: none; gap: 4px; margin-top: 4px; }
+body[data-mode="sticker"] .sheet-subopts,
+body[data-mode="sheet"]   .sheet-subopts { display: flex; }
+body[data-mode="sheet"] .mode-btn[data-mode="sticker"] { background: #e6a000; border-color: #e6a000; color: #000; }
+.sheet-sub-btn {
+  flex: 1; padding: 4px; font-size: 10px; font-weight: 700;
+  cursor: pointer; border-radius: 3px;
+  border: 1.5px solid #666; background: #444; color: #999;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.sheet-sub-btn.active { background: #8659d4; border-color: #8659d4; color: #fff; }
+/* Sticker size toggle — shown under Sticker button in sticker & sheet modes */
+.sticker-size-bar { display: none; gap: 4px; margin-top: 4px; }
+body[data-mode="sticker"] .sticker-size-bar,
+body[data-mode="sheet"]   .sticker-size-bar { display: flex; }
+.sticker-size-btn {
+  flex: 1; padding: 4px; font-size: 10px; font-weight: 700;
+  cursor: pointer; border-radius: 3px;
+  border: 1.5px solid #666; background: #444; color: #999;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.sticker-size-btn.active { background: #4a9ede; border-color: #4a9ede; color: #fff; }
+/* Paper size toggle — only shown in full label mode */
+.paper-toggle-bar { display: none; gap: 4px; margin-top: 8px; }
+body[data-mode="full"] .paper-toggle-bar { display: flex; }
+.paper-btn {
+  flex: 1; padding: 4px; font-size: 10px; font-weight: 700;
+  cursor: pointer; border-radius: 3px;
+  border: 1.5px solid #666; background: #444; color: #999;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.paper-btn.active { background: #4a9ede; border-color: #4a9ede; color: #fff; }
+/* A4 label dimensions (effective print area: 11.39 × 7.97in) */
+body[data-paper="a4"] .label-wrap { width: 11.39in; height: 7.97in; }
+body[data-paper="a4"] .label      { width: 11.39in; height: 7.97in; grid-template-rows: 0.55in 4.2in 1.55in 1fr; }
+/* SRA3 landscape label dimensions (effective print area: 17.7 × 11.7in) */
+body[data-paper="sra3"] .label-outer {
+  width: min(calc(100cqi - 16px), calc((100cqb - 16px) * 17.7 / 11.7));
+  aspect-ratio: 17.7 / 11.7;
+}
+body[data-paper="sra3"] .label-wrap { width: 17.7in; height: 11.7in; }
+body[data-paper="sra3"] .label      { width: 17.7in; height: 11.7in; grid-template-rows: 0.55in 7in 2.2in 1fr; }
+
+/* SRA3 content scaling (~1.5× all sizes to suit large-format sticker) */
+body[data-paper="sra3"] .nfpa-svg          { max-width: 5.5in; max-height: 5.5in; }
+body[data-paper="sra3"] .nfpa-zone         { padding-top: 0.55in; }
+body[data-paper="sra3"] .nfpa-zone .nlabel { height: 0.5in; font-size: 18pt; }
+body[data-paper="sra3"] .pic-zone          { padding-top: 0.55in; }
+body[data-paper="sra3"] .pic-edge-label    { height: 0.5in; font-size: 18pt; }
+body[data-paper="sra3"] .signal-zone .slabel { font-size: 12pt; }
+body[data-paper="sra3"] .signal-zone .sword  { font-size: 42pt; }
+body[data-paper="sra3"] .hmis-zone .hd      { font-size: 13pt; letter-spacing: 5px; padding: 5px 0; }
+body[data-paper="sra3"] .hmis-row           { flex: none; height: 1.1in; }
+body[data-paper="sra3"] .hmis-zone          { justify-content: center; }
+body[data-paper="sra3"] .hmis-row .lab      { font-size: 11pt; }
+body[data-paper="sra3"] .hmis-row .val      { font-size: 28pt; width: 75px; }
+body[data-paper="sra3"] .nfpa-col-head      { font-size: 13pt; }
+body[data-paper="sra3"] .nfpa-col-head span { font-size: 10pt; }
+body[data-paper="sra3"] .nfpa-row           { font-size: 11pt; line-height: 1.5; }
+body[data-paper="sra3"] .key-note           { font-size: 10pt; }
+body[data-paper="sra3"] .ghs-shown-line     { min-height: 0.35in; }
+body[data-paper="sra3"] .ghs-shown-line .klabel,
+body[data-paper="sra3"] .ghs-shown-line .ktext { font-size: 11pt; }
+body[data-paper="sra3"] .hp-info h4,
+body[data-paper="sra3"] .fa-box h4,
+body[data-paper="sra3"] .supplier-info h4   { font-size: 14pt; }
+body[data-paper="sra3"] .hp-info .htxt,
+body[data-paper="sra3"] .hp-info .ptxt,
+body[data-paper="sra3"] .fa-box .fatxt      { font-size: 12pt; }
+body[data-paper="sra3"] .supplier-info { font-size: 12pt; }
+body[data-paper="sra3"] .zone-product .plabel { font-size: 17pt; }
 
 /* ============================================================
    STICKER LABEL (3 × 4 in, portrait)
    ============================================================ */
-.sticker-outer { display: none; }
-body[data-mode="sticker"] .sticker-outer { display: block; }
-body[data-mode="sticker"] .label-outer   { display: none; }
-
+/* Sticker always rendered off-screen so fitText has real dimensions in all modes */
 .sticker-outer {
-  position: relative;
+  display: block;
+  position: absolute; left: -9999px; top: -9999px;
+  visibility: hidden;
   width: min(calc(100cqi - 16px), calc((100cqb - 16px) * 3 / 4));
   aspect-ratio: 3 / 4;
 }
+body[data-mode="sticker"] .sticker-outer { position: relative; left: auto; top: auto; visibility: visible; }
+body[data-mode="sticker"] .label-outer   { display: none; }
 .sticker-wrap {
   position: absolute; top: 0; left: 0;
   width: 3in; height: 4in; transform-origin: top left;
 }
 .sticker {
   width: 3in; height: 4in; background: #fff; border: 3px solid #000;
-  display: grid; grid-template-rows: 0.5in 1fr 1.3in 0.2in;
+  display: grid; grid-template-rows: 0.5in 1fr 1.1in 0.4in;
   font-family: Arial, Helvetica, sans-serif; color: #000;
   box-shadow: 0 6px 24px rgba(0,0,0,0.35); overflow: hidden;
 }
 .s-product {
-  border-bottom: 2px solid #000; padding: 0 0.1in;
-  display: flex; align-items: center; gap: 0.1in; overflow: hidden;
+  border-bottom: 2px solid #000; padding: 0.04in 0.1in;
+  display: flex; align-items: stretch; gap: 0.1in; overflow: hidden;
 }
-.s-product .sp-label { font-size: 7pt; font-weight: 700; letter-spacing: 0.5px; white-space: nowrap; }
-.s-product .sp-value { font-size: 13pt; font-weight: 900; flex: 1; line-height: 1; word-break: break-word; }
+.s-product .sp-label { font-size: 7pt; font-weight: 700; letter-spacing: 0.5px; white-space: nowrap; align-self: center; }
+.s-product .sp-value { font-size: 13pt; font-weight: 900; flex: 1; line-height: 1.1; overflow: hidden; overflow-wrap: break-word; word-break: break-word; display: grid; align-content: center; }
 
 .s-middle {
   display: grid; grid-template-columns: 55% 45%;
@@ -647,7 +765,7 @@ body[data-mode="sticker"] .label-outer   { display: none; }
   text-transform: uppercase; font-weight: 800;
   border-bottom: 1px solid #000; padding-bottom: 1px;
 }
-.s-hazard-text { font-size: 6pt; line-height: 1.3; white-space: pre-wrap; overflow: hidden; }
+.s-hazard-text { font-size: 6pt; line-height: 1.3; white-space: pre-wrap; overflow: hidden; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
 .s-hmis-zone { display: flex; flex-direction: column; overflow: hidden; }
 .s-hmis-zone .s-hd {
   background: #000; color: #fff; font-weight: 800;
@@ -669,12 +787,108 @@ body[data-mode="sticker"] .label-outer   { display: none; }
 .s-hmis-row.s-health { background: #0066cc; color: #fff; }
 .s-hmis-row.s-flame  { background: #cc0000; color: #fff; }
 .s-hmis-row.s-react  { background: #ffcc00; color: #000; }
-.s-ppe-bar {
-  display: flex; align-items: baseline; padding: 0 0.1in;
-  font-size: 6pt; gap: 4px; overflow: hidden;
+.s-footer {
+  display: flex; border-top: 2px solid #000; overflow: hidden;
 }
-.s-ppe-bar .s-ppe-label { font-weight: 900; letter-spacing: 0.5px; white-space: nowrap; font-size: 6pt; }
-.s-ppe-bar .s-ppe-value { font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 6pt; }
+.s-foot-logo {
+  width: 50%;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0.04in; overflow: hidden;
+}
+.s-foot-logo-img {
+  max-height: 0.28in; max-width: 1.3in;
+  object-fit: contain;
+}
+.s-foot-ppe {
+  width: 50%; display: flex; flex-direction: column;
+  justify-content: center; padding: 0.03in 0.06in;
+  overflow: hidden; gap: 1px;
+}
+.s-foot-ppe-label { font-size: 5pt; font-weight: 900; letter-spacing: 0.5px; white-space: nowrap; line-height: 1.2; }
+.s-foot-ppe-value { font-size: 5.5pt; font-weight: 400; line-height: 1.25; word-break: break-word; }
+
+/* ============================================================
+   OL475LP STICKER (4 × 5 in, portrait, round corners)
+   Same content as the 3×4in sticker, resized natively (not scaled
+   up via transform) — proportions rescaled ~1.25–1.33× to match.
+   ============================================================ */
+body[data-sticker-size="ol475lp"] .sticker-outer {
+  width: min(calc(100cqi - 16px), calc((100cqb - 16px) * 4 / 5));
+  aspect-ratio: 4 / 5;
+}
+body[data-sticker-size="ol475lp"] .sticker-wrap { width: 4in; height: 5in; }
+body[data-sticker-size="ol475lp"] .sticker {
+  width: 4in; height: 5in;
+  border: none;
+  border-radius: 0.125in;
+  grid-template-rows: 0.625in 1fr 1.375in 0.5in;
+}
+/* Font-size / spacing scale-up (~1.25–1.33×) so text fills the larger card
+   the same way it does at 3×4in — fitText/fitTextLine still auto-shrink
+   on top of these as a backstop. */
+body[data-sticker-size="ol475lp"] .s-product .sp-label       { font-size: 9pt; }
+body[data-sticker-size="ol475lp"] .s-product .sp-value       { font-size: 17pt; }
+body[data-sticker-size="ol475lp"] .s-ghs-label                { font-size: 8pt; height: 0.25in; }
+body[data-sticker-size="ol475lp"] .s-ghs-zone                 { padding-top: 0.28in; }
+body[data-sticker-size="ol475lp"] .s-nfpa .s-nlabel           { font-size: 7pt; }
+body[data-sticker-size="ol475lp"] .s-nfpa-svg                 { max-width: 1.4in; max-height: 1.4in; }
+body[data-sticker-size="ol475lp"] .s-signal .s-sig-title      { font-size: 7.5pt; }
+body[data-sticker-size="ol475lp"] .s-sig-row                  { font-size: 10pt; gap: 6px; }
+body[data-sticker-size="ol475lp"] .s-sig-box                  { width: 17px; height: 17px; }
+body[data-sticker-size="ol475lp"] .s-hazard h5                { font-size: 7pt; }
+body[data-sticker-size="ol475lp"] .s-hazard-text              { font-size: 7.5pt; }
+body[data-sticker-size="ol475lp"] .s-hmis-zone .s-hd          { font-size: 9pt; }
+body[data-sticker-size="ol475lp"] .s-hmis-row .s-lab          { font-size: 7pt; }
+body[data-sticker-size="ol475lp"] .s-hmis-row .s-val          {
+  width: 32px; height: 32px; align-self: center; flex: none;
+  border-left: none; border: 1px solid #000; font-size: 10pt;
+  display: flex; align-items: center; justify-content: center; line-height: 1;
+}
+body[data-sticker-size="ol475lp"] .s-foot-logo-img            { max-height: 0.35in; max-width: 1.6in; }
+body[data-sticker-size="ol475lp"] .s-foot-ppe-label           { font-size: 6.5pt; }
+body[data-sticker-size="ol475lp"] .s-foot-ppe-value           { font-size: 7pt; }
+
+/* ============================================================
+   SHEET MODE — 4-up (2×2) sticker sheet on letter portrait
+   ============================================================ */
+.sheet-outer {
+  display: none;
+  position: relative;
+  width: min(calc(100cqi - 16px), calc((100cqb - 16px) * 8.5 / 11));
+  aspect-ratio: 8.5 / 11;
+}
+body[data-mode="sheet"] .label-outer  { display: none; }
+body[data-mode="sheet"] .sheet-outer  { display: block; }
+.sheet-wrap {
+  position: absolute; top: 0; left: 0;
+  width: 8.5in; height: 11in;
+  transform-origin: top left;
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+}
+.sheet-grid {
+  width: 8.5in; height: 11in;
+  display: grid;
+  grid-template-columns: 4.25in 4.25in;
+  grid-template-rows: 5.5in 5.5in;
+}
+.sheet-slot {
+  width: 4.25in; height: 5.5in;
+  position: relative;
+  overflow: hidden;
+}
+/* OL475LP real pitch: 4in labels, 0.1875in horizontal gap, 0 vertical gap,
+   0.5in top/bottom margin, 0.15625in left/right margin (sums exactly to
+   8.5 x 11in — see task memory for the source spec). */
+body[data-sticker-size="ol475lp"] .sheet-grid {
+  grid-template-columns: 4in 4in;
+  grid-template-rows: 5in 5in;
+  column-gap: 0.1875in;
+  row-gap: 0;
+  padding: 0.5in 0.15625in;
+  box-sizing: border-box;
+}
+body[data-sticker-size="ol475lp"] .sheet-slot { width: 4in; height: 5in; }
 
 /* ============================================================
    PRINT MODE — page size injected dynamically by JS per mode.
@@ -684,24 +898,26 @@ body[data-mode="sticker"] .label-outer   { display: none; }
   html, body { background: #fff; height: auto; overflow: visible; }
   .app { display: block; height: auto; }
   .form-panel { display: none !important; }
-  .drive-btn { display: none !important; }
-  .mode-toggle-bar { display: none !important; }
+  .mode-toggle-bar, .paper-toggle-bar { display: none !important; }
   .preview-panel {
     width: 100% !important; height: auto; padding: 0;
     background: #fff; overflow: visible; display: block;
     container-type: normal;
   }
   /* Full-size label print */
-  body:not([data-mode="sticker"]) .sticker-outer { display: none !important; }
-  body:not([data-mode="sticker"]) .label-outer {
+  body:not([data-mode="sticker"]):not([data-mode="sheet"]) .sticker-outer { display: none !important; }
+  body:not([data-mode="sticker"]):not([data-mode="sheet"]) .label-outer {
     width: auto !important; height: auto !important;
     aspect-ratio: auto !important; position: static;
   }
-  body:not([data-mode="sticker"]) .label-wrap {
+  body:not([data-mode="sticker"]):not([data-mode="sheet"]) .label-wrap {
     position: static !important;
     width: auto !important; height: auto !important; transform: none !important;
   }
-  body:not([data-mode="sticker"]) .label { margin: 0; box-shadow: none !important; page-break-inside: avoid; }
+  body:not([data-mode="sticker"]):not([data-mode="sheet"]) .label {
+    margin: 0; box-shadow: none !important; page-break-inside: avoid;
+    width: 100vw; height: 100vh;
+  }
   /* Sticker print */
   body[data-mode="sticker"] .label-outer { display: none !important; }
   body[data-mode="sticker"] .sticker-outer {
@@ -713,11 +929,26 @@ body[data-mode="sticker"] .label-outer   { display: none; }
     width: auto !important; height: auto !important; transform: none !important;
   }
   body[data-mode="sticker"] .sticker { margin: 0; box-shadow: none !important; page-break-inside: avoid; }
+  /* Sheet 4-up print */
+  body[data-mode="sheet"] .sticker-outer { display: none !important; }
+  body[data-mode="sheet"] .label-outer   { display: none !important; }
+  body[data-mode="sheet"] .sheet-outer {
+    display: block !important; position: static;
+    width: auto !important; height: auto !important; aspect-ratio: auto !important;
+  }
+  body[data-mode="sheet"] .sheet-wrap {
+    position: static !important;
+    width: 8.5in !important; height: 11in !important; transform: none !important;
+    box-shadow: none !important;
+  }
+  body[data-mode="sheet"] .sheet-grid .sticker { box-shadow: none !important; }
 }
+
 </style>
 <script src="https://accounts.google.com/gsi/client" onload="initGIS()" async defer></script>
 </head>
 <body>
+
 <div class="app">
 
   <!-- ===================== LEFT: input form ===================== -->
@@ -725,14 +956,38 @@ body[data-mode="sticker"] .label-outer   { display: none; }
     <div class="print-bar">
       <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
       <div class="mode-toggle-bar">
-        <button class="mode-btn active" data-mode="full"    onclick="setMode('full')">Full (10×7.5in)</button>
-        <button class="mode-btn"        data-mode="sticker" onclick="setMode('sticker')">Sticker (3×4in)</button>
+        <button class="mode-btn active" data-mode="full"    onclick="setMode('full')">Full Label</button>
+        <button class="mode-btn"        data-mode="sticker" onclick="setMode('sticker')">Sticker</button>
+      </div>
+      <div class="sticker-size-bar">
+        <button class="sticker-size-btn active" id="size-btn-34"      onclick="setStickerSize('34')">3×4in</button>
+        <button class="sticker-size-btn"        id="size-btn-ol475lp" onclick="setStickerSize('ol475lp')">4×5in (OL475LP)</button>
+      </div>
+      <div class="sheet-subopts">
+        <button class="sheet-sub-btn active" id="sub-single" onclick="setMode('sticker')">Single</button>
+        <button class="sheet-sub-btn"        id="sub-sheet"  onclick="setSheetFill('all')">Sheet 4×</button>
+        <button class="sheet-sub-btn"        id="sub-test1"  onclick="setSheetFill('test1')">Test 1×</button>
+      </div>
+      <div class="paper-toggle-bar">
+        <button class="paper-btn active" id="paper-btn-letter" onclick="setPaper('letter')">Letter</button>
+        <button class="paper-btn"        id="paper-btn-a4"     onclick="setPaper('a4')">A4</button>
+        <button class="paper-btn"        id="paper-btn-sra3"   onclick="setPaper('sra3')">SRA3</button>
       </div>
       <div class="export-wrap" id="export-wrap">
-        <button class="export-btn" onclick="toggleExportMenu()">Export / Import <span>▾</span></button>
-        <div class="export-menu" id="export-menu">
-          <button onclick="exportJSON()">⬇&nbsp; Export as JSON</button>
-          <button onclick="importJSON()">⬆&nbsp; Import from JSON</button>
+        <button class="export-btn" onclick="toggleFavPanel()">★ Favorites <span>▾</span></button>
+        <div class="export-menu" id="fav-panel">
+          <button onclick="pinCurrentLabel()" style="color:#2a6b3f;font-weight:800;border-bottom:2px solid #ddd;text-align:center">★&nbsp; Favorite</button>
+          <div id="fav-banner" class="inline-banner" style="margin:4px 8px 0"></div>
+          <div id="fav-list"></div>
+        </div>
+      </div>
+      <div class="export-wrap" id="data-wrap">
+        <button class="export-btn" onclick="toggleDataMenu()">Export / Import <span>▾</span></button>
+        <div class="export-menu" id="data-menu">
+          <button onclick="exportJSON()">⬇&nbsp; Export label as JSON</button>
+          <button onclick="importJSON()">⬆&nbsp; Import label from JSON</button>
+          <button onclick="exportLibrary()" style="border-top:2px solid #ddd">⬇&nbsp; Export full library</button>
+          <button onclick="importLibrary()">⬆&nbsp; Import into library</button>
           <button onclick="saveHTMLWithLibrary()" style="border-top:2px solid #ddd">💾&nbsp; Save HTML with Library</button>
         </div>
       </div>
@@ -742,14 +997,14 @@ body[data-mode="sticker"] .label-outer   { display: none; }
       <div class="fg">
         <h3>Chemical Database</h3>
         <label>Saved Chemicals</label>
-        <div class="lib-row">
-          <select id="lib-select" style="flex:1;padding:5px 6px;font-size:12px;border:1px solid #b0b0b0;border-radius:3px">
-            <option value="">— Select a saved chemical —</option>
-          </select>
-          <button class="lib-load-btn" onclick="loadFromLibrary()">Load</button>
-          <button class="lib-del-btn"  onclick="deleteFromLibrary()" title="Remove from library">✕</button>
+        <div class="lib-combo" id="lib-combo">
+          <input type="text" id="lib-search" placeholder="Type to search or browse..." autocomplete="off"
+            oninput="filterCombo()" onfocus="openCombo(); this.select()" onblur="closeComboDelayed()" onkeydown="handleComboKey(event)">
+          <div class="lib-combo-list" id="lib-combo-list"></div>
         </div>
         <button class="lib-save-btn" onclick="saveToLibrary()">+ Save Current to Library</button>
+        <button class="lib-del-btn" id="lib-del-btn" onclick="deleteFromLibrary()" style="display:none;width:100%;margin-top:6px;padding:7px 9px">Remove Selected</button>
+        <div id="save-banner" class="inline-banner"></div>
         <div id="drive-section" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #ddd">
           <button id="drive-btn" class="lib-save-btn" onclick="driveSignIn()" style="background:#0066cc;margin-top:0">Connect Google Drive</button>
           <div id="drive-status" style="font-size:10px;color:#666;margin-top:4px;text-align:center;line-height:1.4">Not connected — library saved locally</div>
@@ -772,15 +1027,16 @@ body[data-mode="sticker"] .label-outer   { display: none; }
       </div>
 
       <div class="fg">
-        <h3>Statements</h3>
-        <label>Hazard Statements</label>
+        <h3>Hazard Information</h3>
         <textarea id="f-hazard" placeholder="e.g. H225 Highly flammable liquid and vapour."></textarea>
+        <div id="warn-hazard" class="field-truncation-warn" style="display:none">⚠ Text too long — some content will be cut off on the printed label. Shorten or split across multiple lines.</div>
       </div>
 
       <div class="fg">
         <h3>First Aid</h3>
         <label>First Aid Measures</label>
         <textarea id="f-firstaid" placeholder="If swallowed: Call Poison Center.&#10;If on skin: Wash with soap and water.&#10;If inhaled: Move to fresh air.&#10;If in eyes: Rinse cautiously."></textarea>
+        <div id="warn-firstaid" class="field-truncation-warn" style="display:none">⚠ Text too long — some content will be cut off on the printed label. Shorten or use abbreviations.</div>
       </div>
 
       <div class="fg">
@@ -823,19 +1079,28 @@ body[data-mode="sticker"] .label-outer   { display: none; }
               <option>I</option><option>J</option><option>K</option>
             </select></div>
         </div>
+        <div class="fg" style="margin-top:4px">
+          <label>Additional PPE <span style="font-weight:400;font-size:10px;color:#aaa">(auto from HMIS — override if needed)</span></label>
+          <input type="text" id="f-addppe" placeholder="None" oninput="update()">
+        </div>
       </div>
 
       <div class="fg">
         <h3>Supplier Info</h3>
         <label>Company Name</label><input type="text" id="s-company">
-        <label>Address</label><input type="text" id="s-address">
-        <label>Emergency Phone</label><input type="text" id="s-phone">
+        <label>Address</label><textarea id="s-address" rows="2"></textarea>
+        <label>Emergency Phone</label><textarea id="s-phone" rows="2" style="resize:vertical"></textarea>
         <label>Prepared By</label><input type="text" id="s-prep">
         <label>Date</label><input type="text" id="s-date">
+        <label>Company Logo</label>
+        <input type="file" id="s-logo-file" accept="image/*" onchange="handleLogoUpload(this)">
+        <button class="lib-del-btn" id="s-logo-clear" onclick="clearLogo()" style="display:none;margin-top:6px">Remove logo</button>
       </div>
 
       <div style="padding: 12px; border-top: 2px solid #ccc; margin-top: 4px;">
-        <button class="clear-btn" onclick="clearForm()">Clear Form</button>
+        <button class="lib-save-btn" onclick="saveToLibrary()">+ Save Current to Library</button>
+        <div id="save-banner-bottom" class="inline-banner"></div>
+        <button class="clear-btn" onclick="clearForm()" style="margin-top: 6px;">Clear Form</button>
       </div>
     </div>
   </aside>
@@ -850,6 +1115,7 @@ body[data-mode="sticker"] .label-outer   { display: none; }
           <div class="zone-product">
             <div class="plabel">PRODUCT IDENTIFIER:</div>
             <div class="pvalue" id="lbl-product">—</div>
+            <img id="lbl-logo" class="product-logo" src="" alt="" style="display:none">
           </div>
 
           <!-- Zones 2–4: middle row -->
@@ -917,18 +1183,27 @@ body[data-mode="sticker"] .label-outer   { display: none; }
                NFPA vs HMIS so floor operators know which is which. -->
           <div class="zone-key">
             <div class="key-title-bar">
-              <div class="key-title">RATING GUIDE</div>
-              <div class="key-explain">
-                <b>NFPA</b> (the diamond) &rarr; for emergency responders / firefighters
-                &nbsp;·&nbsp;
-                <b>HMIS</b> (the colored bars) &rarr; for daily workers + See PPE Below
-                &nbsp;·&nbsp;
-                Baseline facility PPE requirements still apply
-              </div>
+              <span class="key-note"><b>Always take appropriate care when handling chemicals</b></span>
+              <span class="key-arrow">→</span>
+              <span class="key-note">
+                <b>EMERGENCIES:</b> Call 911
+                &nbsp;&middot;&nbsp;
+                Poison Control 1-800-222-1222
+                &nbsp;&middot;&nbsp;
+                CHEMTREC 1-800-424-9300
+                &nbsp;&middot;&nbsp;
+                Plant PPE requirements always apply
+              </span>
             </div>
             <div class="ghs-shown-line">
-              <span class="klabel">GHS Hazards Present:</span>
-              <span class="ktext" id="lbl-active-pictos">None marked</span>
+              <div class="ghs-left">
+                <span class="klabel">GHS Hazards Present:</span>
+                <span class="ktext" id="lbl-active-pictos">None marked</span>
+              </div>
+              <div class="ghs-right">
+                <span class="klabel">Additional PPE:</span>
+                <span class="ktext" id="lbl-key-addppe">None</span>
+              </div>
             </div>
             <div class="nfpa-guide">
               <div class="nfpa-col health">
@@ -968,10 +1243,8 @@ body[data-mode="sticker"] .label-outer   { display: none; }
           <div class="zone-bottom">
             <div class="hp-info">
               <h4>Hazard Information</h4>
-              <div class="htxt"><span class="pl">Hazard:</span> <span id="lbl-hazard"></span></div>
+              <div class="htxt" id="lbl-hazard"></div>
             </div>
-            <!-- First-aid cell split into two stacked boxes:
-                 top = first-aid instructions, bottom = required PPE -->
             <div class="first-aid">
               <div class="fa-box">
                 <h4>First Aid</h4>
@@ -980,11 +1253,13 @@ body[data-mode="sticker"] .label-outer   { display: none; }
             </div>
             <div class="supplier-info">
               <h4>Supplier Info</h4>
-              <div class="srow"><b id="lbl-company"></b></div>
-              <div class="srow" id="lbl-address"></div>
-              <div class="srow"><b>Emergency:</b> <span id="lbl-phone"></span></div>
-              <div class="srow"><b>Prepared by:</b> <span id="lbl-prep"></span></div>
-              <div class="srow"><b>Date:</b> <span id="lbl-date"></span></div>
+              <div id="lbl-supplier-text" style="flex:1;min-height:0;overflow:hidden">
+                <div class="srow"><b id="lbl-company"></b></div>
+                <div class="srow" id="lbl-address" style="white-space: pre-wrap;"></div>
+                <div class="srow"><b>Emergency:</b> <span id="lbl-phone" style="white-space:pre-wrap"></span></div>
+                <div class="srow"><b>Prepared by:</b> <span id="lbl-prep"></span></div>
+                <div class="srow"><b>Date:</b> <span id="lbl-date"></span></div>
+              </div>
             </div>
           </div>
 
@@ -1057,13 +1332,25 @@ body[data-mode="sticker"] .label-outer   { display: none; }
               </div>
             </div>
 
-            <!-- S4: PPE Required -->
-            <div class="s-ppe-bar">
-              <span class="s-ppe-label">PPE REQUIRED:</span>
-              <span class="s-ppe-value" id="s-ppe-display">—</span>
+            <!-- S4: Footer — logo left | additional PPE right -->
+            <div class="s-footer">
+              <div class="s-foot-logo">
+                <img id="s-lbl-logo" class="s-foot-logo-img" src="" alt="" style="display:none">
+              </div>
+              <div class="s-foot-ppe">
+                <span class="s-foot-ppe-label">Additional PPE Required:</span>
+                <span class="s-foot-ppe-value" id="s-lbl-addppe">None specified</span>
+              </div>
             </div>
 
           </div>
+        </div>
+      </div>
+
+      <!-- ============= SHEET: 4-up sticker sheet (8.5×11 portrait) ============= -->
+      <div class="sheet-outer" id="sheet-outer">
+        <div class="sheet-wrap" id="sheet-wrap">
+          <div class="sheet-grid" id="sheet-grid"></div>
         </div>
       </div>
 
@@ -1208,18 +1495,36 @@ const PICTOS = {
    section so floor operators don't have to memorize the code. */
 const PPE_CODES = {
   NONE: 'No PPE required for normal handling',
-  A: 'Safety glasses',
-  B: 'Safety glasses + gloves',
-  C: 'Safety glasses + gloves + apron',
-  D: 'Face shield + gloves + apron',
-  E: 'Safety glasses + gloves + dust respirator',
-  F: 'Safety glasses + gloves + apron + dust respirator',
-  G: 'Safety glasses + gloves + vapor respirator',
-  H: 'Splash goggles + gloves + apron + vapor respirator',
-  I: 'Safety glasses + gloves + dust & vapor respirator',
-  J: 'Splash goggles + gloves + apron + dust & vapor respirator',
-  K: 'Air-line hood/mask + gloves + full suit + boots'
+  A: 'Safety Glasses',
+  B: 'Safety Glasses + Gloves',
+  C: 'Safety Glasses + Gloves + Apron',
+  D: 'Face Shield + Gloves + Apron',
+  E: 'Safety Glasses + Gloves + Dust Respirator',
+  F: 'Safety Glasses + Gloves + Apron + Dust Respirator',
+  G: 'Safety Glasses + Gloves + Vapor Respirator',
+  H: 'Splash Goggles + Gloves + Apron + Vapor Respirator',
+  I: 'Safety Glasses + Gloves + Dust & Vapor Respirator',
+  J: 'Splash Goggles + Gloves + Apron + Dust & Vapor Respirator',
+  K: 'Air-Line Hood/Mask + Gloves + Full Suit + Boots'
 };
+
+/* Items every employee already wears — strip these from
+   the HMIS description to show only what is truly additional. */
+const BASELINE_PPE = ['safety glasses', 'gloves'];
+
+function computeAdditionalPPE(code) {
+  if (!code || code === 'NONE') return '';
+  const desc = PPE_CODES[code];
+  if (!desc) return '';
+  const extras = desc.split(' + ').filter(item =>
+    !BASELINE_PPE.includes(item.trim().toLowerCase())
+  );
+  return extras.map(item =>
+    item.trim().split(' ').map(word =>
+      word.toLowerCase() === 'and' ? 'and' : word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ')
+  ).join(', ');
+}
 
 /* Form checklist order (matches the spec). */
 const PIC_ORDER = [
@@ -1240,10 +1545,11 @@ const PIC_ORDER = [
    Sized to fit within the 40% GHS column minus the diagonal-
    label gutter on the left.
    ------------------------------------------------------------ */
-const SIDE      = 215;                       // un-rotated grid side, px
-const FOOTPRINT = Math.round(SIDE * Math.SQRT2);  // rotated bounding box ≈ 304px
+const SIDE        = 215;                            // un-rotated grid side, px
 const S_SIDE      = 95;
 const S_FOOTPRINT = Math.round(S_SIDE * Math.SQRT2);
+const S_SIDE_OL475LP      = 120;                     // ~1.26x — tuned to fill the larger 4x5in card
+const S_FOOTPRINT_OL475LP = Math.round(S_SIDE_OL475LP * Math.SQRT2);
 
 /* ============================================================
    Build the form's pictogram checklist
@@ -1258,33 +1564,244 @@ function buildPicList() {
    Apply cluster sizing (must run once after DOM is ready)
    ============================================================ */
 function sizeCluster() {
+  const side = currentPaper === 'sra3' ? 330 : SIDE;
+  const fp   = Math.round(side * Math.SQRT2);
   const outer = document.getElementById('pic-cluster-outer');
   const inner = document.getElementById('pic-cluster');
-  outer.style.width  = FOOTPRINT + 'px';
-  outer.style.height = FOOTPRINT + 'px';
-  inner.style.width  = SIDE + 'px';
-  inner.style.height = SIDE + 'px';
+  if (outer) { outer.style.width = fp + 'px'; outer.style.height = fp + 'px'; }
+  if (inner) { inner.style.width = side + 'px'; inner.style.height = side + 'px'; }
 }
 
 function sizeSticker() {
   const outer = document.getElementById('s-pic-cluster-outer');
   const inner = document.getElementById('s-pic-cluster');
   if (!outer || !inner) return;
-  outer.style.width  = S_FOOTPRINT + 'px';
-  outer.style.height = S_FOOTPRINT + 'px';
-  inner.style.width  = S_SIDE + 'px';
-  inner.style.height = S_SIDE + 'px';
+  const side      = currentStickerSize === 'ol475lp' ? S_SIDE_OL475LP      : S_SIDE;
+  const footprint = currentStickerSize === 'ol475lp' ? S_FOOTPRINT_OL475LP : S_FOOTPRINT;
+  outer.style.width  = footprint + 'px';
+  outer.style.height = footprint + 'px';
+  inner.style.width  = side + 'px';
+  inner.style.height = side + 'px';
 }
 
 /* ============================================================
    Update preview from form values
    ============================================================ */
 const $ = id => document.getElementById(id);
-const setText = (id, v) => { const el = $(id); if (el) el.textContent = v || ''; };
+const setText = (id, v) => { $(id).textContent = v || ''; };
+/* Shrink el's font-size until content fits, down to minPt.
+   Temporarily lifts the element out of flex/grid flow so scrollHeight
+   reflects actual text height rather than the clamped container height. */
+function fitText(el, minPt) {
+  if (!el) return false;
+  el.style.fontSize = '';
+
+  const constrainedH = el.clientHeight;
+  const constrainedW = el.clientWidth;
+  if (constrainedH === 0 || constrainedW === 0) return false;
+
+  // Pull the element out of flex flow temporarily. As a flex child with
+  // overflow:hidden, Chrome clamps scrollHeight to clientHeight. As an
+  // absolute element with height:auto, scrollHeight = actual content height.
+  const savedPos = el.style.position;
+  const savedH   = el.style.height;
+  const savedW   = el.style.width;
+  const savedOvf = el.style.overflow;
+  el.style.position = 'absolute';
+  el.style.height   = 'auto';
+  el.style.width    = constrainedW + 'px';
+  el.style.overflow = 'visible';
+
+  const cs = getComputedStyle(el);
+  let size = parseFloat(cs.fontSize) * 0.75; // px → pt
+  while (size > minPt && el.scrollHeight > constrainedH) {
+    size = Math.max(minPt, size - 0.25);
+    el.style.fontSize = size + 'pt';
+  }
+  const overflows = el.scrollHeight > constrainedH;
+
+  el.style.position = savedPos || '';
+  el.style.height   = savedH   || '';
+  el.style.width    = savedW   || '';
+  el.style.overflow = savedOvf || '';
+
+  return overflows;
+}
+// Render hazard text, set grid widths, then sync font sizes between the two cells.
+//
+// Width is driven by line COUNT, not line length — long lines are allowed to wrap
+function balanceBottomStrip() {
+  const zone   = document.querySelector('.zone-bottom');
+  const hazEl  = $('lbl-hazard');
+  const faEl   = $('lbl-firstaid');
+  const suppEl = $('lbl-supplier-text');
+  if (!zone || !hazEl || !faEl || !suppEl) return;
+
+  const hazText   = ($('f-hazard').value || '').trim();
+  const lines     = hazText.split('\n').filter(l => l.trim());
+  const lineCount = lines.length;
+
+  const useTwoCol = lineCount > 8;
+  setHazard('lbl-hazard', hazText, useTwoCol);
+
+  const targetPct = useTwoCol ? 50
+    : lineCount <= 2 ? 28
+    : lineCount <= 4 ? 33
+    : lineCount <= 6 ? 40
+    : 46;
+
+  // Read CSS base size before any inline overrides.
+  hazEl.style.fontSize = '';
+  const basePt = parseFloat(getComputedStyle(hazEl).fontSize) * 0.75;
+
+  const readPt = el => {
+    if (el.style.fontSize) return parseFloat(el.style.fontSize);
+    return parseFloat(getComputedStyle(el).fontSize) * 0.75;
+  };
+
+  // Check whether el's content fits vertically at pt without committing the size.
+  // Uses the same absolute-position trick as fitText for accurate scrollHeight.
+  const cellFits = (el, pt) => {
+    const h = el.clientHeight, w = el.clientWidth;
+    if (!h || !w) return true;
+    const sp = el.style.position, sh = el.style.height,
+          sw = el.style.width,   so = el.style.overflow, sf = el.style.fontSize;
+    el.style.position = 'absolute'; el.style.height = 'auto';
+    el.style.width = w + 'px'; el.style.overflow = 'visible';
+    el.style.fontSize = pt + 'pt';
+    const ok = el.scrollHeight <= h;
+    el.style.position = sp || ''; el.style.height = sh || '';
+    el.style.width = sw || ''; el.style.overflow = so || '';
+    el.style.fontSize = sf;
+    return ok;
+  };
+
+  const growFont = (startPt) => {
+    let pt = startPt;
+    for (let t = startPt + 0.25; t <= basePt + 0.001; t += 0.25) {
+      const p = Math.min(t, basePt);
+      if (cellFits(hazEl, p) && cellFits(faEl, p) && cellFits(suppEl, p)) { pt = p; }
+      else break;
+      if (p >= basePt) break;
+    }
+    return pt;
+  };
+
+  // Pass 1 — set initial column widths, shrink each cell to fit vertically.
+  zone.style.gridTemplateColumns = `${targetPct}% 1fr fit-content(25%)`;
+  fitText(hazEl,  5);
+  fitText(faEl,   5);
+  fitText(suppEl, 5);
+
+  // Pass 2 — sync down to the smallest fitted size.
+  let finalPt = Math.max(5, Math.min(readPt(hazEl), readPt(faEl), readPt(suppEl)));
+
+  // Pass 3 — grow back up toward basePt while all three cells still fit.
+  finalPt = growFont(finalPt);
+
+  // Pass 4 — binary-search the minimum hazard column width where hazard still
+  // fits at finalPt, then give that reclaimed space to first-aid.
+  let bestHazPct = targetPct;
+  let lo = Math.max(20, targetPct - 20), hi = targetPct;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    zone.style.gridTemplateColumns = `${mid}% 1fr fit-content(25%)`;
+    if (cellFits(hazEl, finalPt)) { bestHazPct = mid; hi = mid; }
+    else { lo = mid + 1; }
+  }
+  zone.style.gridTemplateColumns = `${bestHazPct}% 1fr fit-content(25%)`;
+
+  // Pass 5 — first-aid now has more room; try to grow font again.
+  finalPt = growFont(finalPt);
+
+  hazEl.style.fontSize  = finalPt + 'pt';
+  faEl.style.fontSize   = finalPt + 'pt';
+  suppEl.style.fontSize = finalPt + 'pt';
+}
+
+function fitTextLine(el, minPt) {
+  if (!el) return;
+  el.style.fontSize = '';
+  let size = parseFloat(window.getComputedStyle(el).fontSize) * 0.75; // px → pt
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  while (size > minPt && range.getBoundingClientRect().width > el.clientWidth) {
+    size = Math.max(minPt, size - 0.5);
+    el.style.fontSize = size + 'pt';
+  }
+}
+const setFirstAid = (id, v) => {
+  const el = $(id);
+  if (!v) { el.innerHTML = ''; return; }
+  const escaped = v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  el.innerHTML = escaped.replace(/^([^:\n]+:)/gm, '<strong>$1</strong>');
+};
+const setHazard = (id, v, twoCol = false) => {
+  const el = $(id);
+  if (!v) { el.innerHTML = ''; el.classList.remove('htxt-two-col'); return; }
+  const fmt = line => {
+    const esc = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return esc.replace(/^([^–\-\n]*[–-])/, '<strong>$1</strong>');
+  };
+  const lines = v.split('\n').filter(l => l.trim());
+  el.innerHTML = lines.map(l => `<div class="htxt-line">${fmt(l)}</div>`).join('');
+  el.classList.toggle('htxt-two-col', twoCol);
+};
+
+// GHS H-statement priority (1 = most critical, 3 = least critical)
+const H_STMT_PRIORITY = (() => {
+  const p = {};
+  // Priority 1 — fatal acute toxicity, carcinogen/mutagen/repro Cat 1, physical hazards, STOT Cat 1
+  [200,201,202,203,204,205,206,207,208,209,210,211,212,
+   220,221,222,223,224,225,226,228,229,230,231,232,
+   240,241,242,250,251,252,260,261,270,271,272,
+   280,281,282,283,284,290,
+   300,301,310,311,330,331,340,350,360,370,372
+  ].forEach(n => p[n] = 1);
+  // Priority 2 — harmful acute toxicity, serious health effects, aspiration, corrosion
+  [302,304,312,314,318,332,334,341,351,361,371,373,400,410
+  ].forEach(n => p[n] = 2);
+  // Priority 3 — irritation, sensitization, mild/environmental
+  [303,313,315,316,317,319,320,333,335,336,362,411,412,413,420
+  ].forEach(n => p[n] = 3);
+  return p;
+})();
+
+function setStickerHazard(hazText) {
+  const el = $('s-lbl-hazard');
+  if (!el) return;
+  if (!hazText) { el.innerHTML = ''; return; }
+  const fmt = line => {
+    const esc = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return esc.replace(/^([^–\-\n]*[–-])/, '<strong>$1</strong>');
+  };
+  const getPriority = line => {
+    const m = line.match(/H(\d{3})/i);
+    return m ? (H_STMT_PRIORITY[parseInt(m[1])] || 2) : 2;
+  };
+  const lines = hazText.split('\n').filter(l => l.trim());
+  lines.sort((a, b) => getPriority(a) - getPriority(b));
+  // Render all lines and let fitText shrink font to 5pt minimum
+  el.innerHTML = lines.map(l => `<div class="htxt-line">${fmt(l)}</div>`).join('');
+  fitText(el, 4);
+  // If still overflowing at 4pt, drop lowest-priority lines until it fits
+  if (el.scrollHeight > el.clientHeight + 1) {
+    let shown = lines.slice();
+    while (shown.length > 1) {
+      shown.pop();
+      el.innerHTML = shown.map(l => `<div class="htxt-line">${fmt(l)}</div>`).join('') +
+        '<div class="htxt-line" style="font-style:italic;color:#555;font-size:5pt">See SDS for complete hazard list</div>';
+      if (el.scrollHeight <= el.clientHeight + 1) break;
+    }
+  }
+}
 
 function update() {
   // Product
-  $('lbl-product').textContent = $('f-product').value.trim() || '—';
+  const productName = $('f-product').value.trim();
+  $('lbl-product').textContent = productName || '—';
+  // Set page title so browser uses the chemical name as the PDF filename
+  document.title = productName ? `${productName} — Easy SDS` : 'Easy SDS';
 
   // Signal word — DANGER (red, large), WARNING (orange, large),
   // or NONE → display "NOT HAZARDOUS" in muted green at smaller size.
@@ -1301,10 +1818,8 @@ function update() {
     sw.className = 'sword danger';
   }
 
-  // Statements + first aid
-  setText('lbl-hazard',   $('f-hazard').value);
-  setText('lbl-prec',     $('f-prec').value);
-  setText('lbl-firstaid', $('f-firstaid').value);
+  // First aid (hazard is rendered inside balanceBottomStrip below)
+  setFirstAid('lbl-firstaid', $('f-firstaid').value);
 
   // GHS pictograms — toggle active class + inject SVG (or clear),
   // and collect the display names of every active hazard for the
@@ -1382,11 +1897,43 @@ function update() {
   setText('s-h-val-flame',  sX('h-flame'));
   setText('s-h-val-react',  sX('h-react'));
 
-  // PPE bar
-  const ppeText = ppeCode === 'NONE' ? 'None specified' : `${ppeCode} — ${PPE_CODES[ppeCode] || ''}`;
-  setText('s-ppe-display', ppeText);
+  // Additional PPE footer — manual override or auto-computed from HMIS code
+  const autoAddl = computeAdditionalPPE(ppeCode);
+  const addlPPE  = $('f-addppe').value.trim() || autoAddl;
+  setText('s-lbl-addppe',   addlPPE || 'None');
+  setText('lbl-key-addppe', addlPPE || 'None');
+  $('f-addppe').placeholder = autoAddl || 'None';
 
-  setText('s-lbl-hazard', $('f-hazard').value);
+  // Hazard + precautionary text (combined in compact space)
+  setStickerHazard($('f-hazard').value);
+
+  // Auto-fit text in space-constrained boxes
+  fitText($('lbl-product'),   11);
+  // fitText measures el.clientHeight, but display:grid can report content
+  // height rather than the stretched row height. Pin the row height explicitly
+  // so fitText sees the real vertical constraint.
+  (function() {
+    const el  = $('s-lbl-product');
+    if (!el) return;
+    const row = el.closest('.s-product');
+    if (!row) { fitText(el, 5); return; }
+    const cs   = getComputedStyle(row);
+    const rowH = row.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    if (rowH <= 0) { fitText(el, 5); return; }
+    el.style.height = rowH + 'px';
+    fitText(el, 5);
+    el.style.height = '';
+  })();
+  fitText($('s-lbl-hazard'), 4);
+
+  // Balance hazard/first-aid columns, render hazard, fit both, sync font sizes
+  balanceBottomStrip();
+
+  // Truncation warnings (balanceBottomStrip already ran fitText on both)
+  const hazTrunc   = $('lbl-hazard').scrollHeight   > $('lbl-hazard').clientHeight;
+  const firstTrunc = $('lbl-firstaid').scrollHeight > $('lbl-firstaid').clientHeight;
+  const warnH = $('warn-hazard');   if (warnH)  warnH.style.display  = hazTrunc   ? 'block' : 'none';
+  const warnF = $('warn-firstaid'); if (warnF)  warnF.style.display  = firstTrunc ? 'block' : 'none';
 
   // GHS pictograms for sticker cluster
   document.querySelectorAll('#s-pic-cluster .pic-cell').forEach(cell => {
@@ -1407,6 +1954,9 @@ function update() {
       cell.style.backgroundImage = '';
     }
   });
+
+  // Sheet mode: populate grid with 4 clones of the canonical sticker
+  if (currentMode === 'sheet') updateSheetGrid();
 }
 
 /* ============================================================
@@ -1414,7 +1964,7 @@ function update() {
    Uses ResizeObserver so it reacts to the *panel's* size,
    not just window resizes — important when the form panel
    width changes (e.g. window resize on Windows).
-   ============================================================ */
+   ======================================================= ===== */
 let fitScheduled = false;
 function fitLabel() {
   fitScheduled = false;
@@ -1423,40 +1973,147 @@ function fitLabel() {
   const wrap  = document.getElementById('label-wrap');
   if (outer && wrap) {
     const w = outer.clientWidth;
-    if (w) wrap.style.transform = `scale(${w / 960})`; // 960px = 10in
+    const labelPx = currentPaper === 'a4' ? 1093 : currentPaper === 'sra3' ? 1699 : 1027; // 11.39 / 17.7 / 10.7in at 96dpi
+    if (w) wrap.style.transform = `scale(${w / labelPx})`;
   }
-  // Sticker label
+  // Sticker label (also runs off-screen in full/sheet mode for fitText measurement)
   const souter = document.getElementById('sticker-outer');
   const swrap  = document.getElementById('sticker-wrap');
   if (souter && swrap) {
     const sw = souter.clientWidth;
-    if (sw) swrap.style.transform = `scale(${sw / 288})`; // 288px = 3in
+    const nativePx = currentStickerSize === 'ol475lp' ? 384 : 288; // 4in / 3in at 96dpi
+    if (sw) swrap.style.transform = `scale(${sw / nativePx})`;
+  }
+  // Sheet preview
+  const shOuter = document.getElementById('sheet-outer');
+  const shWrap  = document.getElementById('sheet-wrap');
+  if (shOuter && shWrap) {
+    const shW = shOuter.clientWidth;
+    if (shW) shWrap.style.transform = `scale(${shW / 816})`; // 816px = 8.5in at 96dpi
   }
 }
 
 let currentMode = 'full';
-function setMode(mode) {
-  currentMode = mode;
-  document.body.dataset.mode = mode;
-  document.querySelectorAll('.mode-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.mode === mode);
-  });
-  // Inject per-mode @page rule so print dialog uses the right paper size
+let currentPaper = 'letter';
+let currentStickerSize = '34';   // '34' (3x4in) | 'ol475lp' (4x5in)
+let sheetFillMode = 'all';       // 'all' (4 copies) | 'test1' (top-left slot only)
+
+// Re-inject @page with the correct size for the current mode/paper/sticker-size.
+// Shared by setMode(), setPaper(), and setStickerSize() so all three stay in sync.
+function updatePrintPageSize() {
   let ps = document.getElementById('dynamic-print-style');
   if (!ps) {
     ps = document.createElement('style');
     ps.id = 'dynamic-print-style';
     document.head.appendChild(ps);
   }
-  ps.textContent = mode === 'sticker'
-    ? '@media print { @page { size: 3in 4in; margin: 0; } }'
-    : '@media print { @page { size: letter landscape; margin: 0.5in; } }';
+  const fullSize   = currentPaper === 'a4' ? 'A4 landscape' : currentPaper === 'sra3' ? '18in 12in' : 'letter landscape';
+  const stickerSize = currentStickerSize === 'ol475lp' ? '4in 5in' : '3in 4in';
+  ps.textContent = currentMode === 'sticker'
+    ? `@media print { @page { size: ${stickerSize}; margin: 0; } }`
+    : currentMode === 'sheet'
+    ? '@media print { @page { size: letter portrait; margin: 0; } }'
+    : `@media print { @page { size: ${fullSize}; margin: 0.15in; } }`;
+}
+
+function setPaper(paper) {
+  currentPaper = paper;
+  document.body.dataset.paper = paper === 'letter' ? '' : paper;
+  document.querySelectorAll('.paper-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('paper-btn-' + paper);
+  if (btn) btn.classList.add('active');
+  if (currentMode === 'full') updatePrintPageSize();
+  sizeCluster();
   scheduleFit();
+  setTimeout(scheduleFit, 50);
+  setTimeout(scheduleFit, 200);
+  update();
+  setTimeout(update, 50);
+  setTimeout(update, 200);
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.body.dataset.mode = mode;
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    const isActive = btn.dataset.mode === mode || (btn.dataset.mode === 'sticker' && mode === 'sheet');
+    btn.classList.toggle('active', isActive);
+  });
+  const subSingle = $('sub-single');
+  const subSheet  = $('sub-sheet');
+  const subTest1  = $('sub-test1');
+  if (subSingle) subSingle.classList.toggle('active', mode === 'sticker');
+  if (subSheet)  subSheet.classList.toggle('active',  mode === 'sheet' && sheetFillMode === 'all');
+  if (subTest1)  subTest1.classList.toggle('active',  mode === 'sheet' && sheetFillMode === 'test1');
+  updatePrintPageSize();
+  scheduleFit();
+  if (mode === 'sheet') updateSheetGrid();
+  update();
+}
+
+function setStickerSize(size) {
+  currentStickerSize = size;
+  document.body.dataset.stickerSize = size;
+  document.querySelectorAll('.sticker-size-btn').forEach(b => b.classList.remove('active'));
+  const btn = $('size-btn-' + size);
+  if (btn) btn.classList.add('active');
+  updatePrintPageSize();
+  sizeSticker();
+  scheduleFit();
+  if (currentMode === 'sheet') updateSheetGrid();
+  update();
+}
+
+function setSheetFill(fillMode) {
+  sheetFillMode = fillMode;
+  const subSheet = $('sub-sheet');
+  const subTest1 = $('sub-test1');
+  if (subSheet) subSheet.classList.toggle('active', fillMode === 'all');
+  if (subTest1) subTest1.classList.toggle('active', fillMode === 'test1');
+  if (currentMode !== 'sheet') { setMode('sheet'); return; } // setMode('sheet') calls updateSheetGrid()
+  updateSheetGrid();
 }
 function scheduleFit() {
   if (fitScheduled) return;
   fitScheduled = true;
   requestAnimationFrame(fitLabel);
+}
+
+/* Clone the fully-rendered canonical sticker into the sheet grid.
+   - '34' size: sticker is 3x4in content upscaled 1.25x to fill each 4.25x5.5in slot
+     (the slot is a naive even quarter-split of the letter page, not a real product).
+   - 'ol475lp' size: sticker is already native 4x5in (via CSS), so it's cloned as-is
+     into slots sized/spaced to match the real OL475LP pitch (see .sheet-grid CSS).
+   sheetFillMode === 'test1' renders only the first (top-left) slot, leaving the
+   other three blank — for a legibility/alignment check without using a full sheet. */
+function updateSheetGrid() {
+  const grid = $('sheet-grid');
+  if (!grid) return;
+  const src = document.querySelector('#sticker-outer .sticker');
+  if (!src) return;
+  const isOl475lp = currentStickerSize === 'ol475lp';
+  // 1.25× upsize for the 3x4in sticker only — leaves ~0.375in margin per side for cutting
+  const scale   = 1.25;
+  const offsetX = ((4.25 - 3 * scale) / 2) * 96; // center horizontally in slot
+  const offsetY = ((5.5  - 4 * scale) / 2) * 96; // center vertically in slot
+  grid.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'sheet-slot';
+    if (i === 0 || sheetFillMode === 'all') {
+      const clone = src.cloneNode(true);
+      clone.style.boxShadow = 'none';
+      if (isOl475lp) {
+        clone.style.transform = 'none';
+      } else {
+        clone.style.transformOrigin = 'top left';
+        clone.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+      }
+      clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+      slot.appendChild(clone);
+    }
+    grid.appendChild(slot);
+  }
 }
 
 /* ============================================================
@@ -1496,10 +2153,17 @@ function init() {
   window.addEventListener('resize', scheduleFit);
   window.addEventListener('load',   scheduleFit);
 
-  // Close export dropdown when clicking outside it
+  // Close favorites panel when clicking outside it
   document.addEventListener('click', e => {
     const wrap = $('export-wrap');
-    if (wrap && !wrap.contains(e.target)) closeExportMenu();
+    if (wrap && !wrap.contains(e.target)) closeFavPanel();
+  });
+
+  applyLogo(getStoredLogo());
+
+  document.addEventListener('click', e => {
+    const wrap = $('data-wrap');
+    if (wrap && !wrap.contains(e.target)) closeDataMenu();
   });
 }
 
@@ -1510,13 +2174,6 @@ function syncHMIS() {
   update();
 }
 
-function toggleExportMenu() {
-  $('export-menu').classList.toggle('open');
-}
-function closeExportMenu() {
-  const m = $('export-menu');
-  if (m) m.classList.remove('open');
-}
 
 /* ── Shared form data helpers ───────────────────────────────── */
 function getCurrentFormData() {
@@ -1538,6 +2195,7 @@ function getCurrentFormData() {
       reactivity:   $('h-react').value,
       ppe:          $('h-ppe').value
     },
+    addlPPE: $('f-addppe').value,
     supplier: {
       company:    $('s-company').value,
       address:    $('s-address').value,
@@ -1549,6 +2207,7 @@ function getCurrentFormData() {
 }
 
 function loadFormData(d) {
+  if (d.prec) d = { ...d, hazard: ((d.hazard || '') + '\n' + d.prec).trim() };
   if (d.product !== undefined)       $('f-product').value  = d.product;
   if (d.signal) {
     const r = document.querySelector(`input[name="signal"][value="${d.signal}"]`);
@@ -1556,6 +2215,7 @@ function loadFormData(d) {
   }
   if (d.hazard        !== undefined) $('f-hazard').value   = d.hazard;
   if (d.firstAid      !== undefined) $('f-firstaid').value = d.firstAid;
+  if (d.addlPPE       !== undefined) $('f-addppe').value   = d.addlPPE;
   document.querySelectorAll('.pic-toggle').forEach(cb => {
     cb.checked = !!(d.ghs && d.ghs.includes(cb.dataset.key));
   });
@@ -1575,31 +2235,435 @@ function loadFormData(d) {
     if (d.supplier.company    !== undefined) $('s-company').value = d.supplier.company;
     if (d.supplier.address    !== undefined) $('s-address').value = d.supplier.address;
     if (d.supplier.phone      !== undefined) $('s-phone').value   = d.supplier.phone;
-    if (d.supplier.preparedBy !== undefined) $('s-prep').value    = d.supplier.preparedBy;
-    if (d.supplier.date       !== undefined) $('s-date').value    = d.supplier.date;
+    if (d.supplier.preparedBy !== undefined) $('s-prep').value = d.supplier.preparedBy;
+    if (d.supplier.date       !== undefined) $('s-date').value = d.supplier.date;
   }
+  update();
+  setTimeout(update, 50);
+  setTimeout(update, 200);
+}
+
+/* ── Favorites (localStorage) ───────────────────────────────── */
+const FAV_KEY = 'chemLabelFavorites';
+const getFavs  = () => { try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch { return []; } };
+const saveFavs = favs => localStorage.setItem(FAV_KEY, JSON.stringify(favs));
+let favCache = [];
+
+function toggleFavPanel() {
+  const panel = $('fav-panel');
+  if (!panel) return;
+  const opening = !panel.classList.contains('open');
+  panel.classList.toggle('open', opening);
+  if (opening) loadFavorites();
+}
+
+function closeFavPanel() {
+  const panel = $('fav-panel');
+  if (panel) panel.classList.remove('open');
+}
+
+function loadFavorites() {
+  favCache = getFavs();
+  favCache.sort((a, b) => (a.product || '').localeCompare(b.product || ''));
+  renderFavorites(favCache);
+}
+
+function renderFavorites(favs) {
+  const list = $('fav-list');
+  if (!list) return;
+  if (favs === null) {
+    list.innerHTML = '<div style="padding:10px 14px;font-size:11px;color:#888">Loading…</div>';
+    return;
+  }
+  if (!favs.length) {
+    list.innerHTML = '<div style="padding:10px 14px;font-size:11px;color:#888">No favorites yet — pin a label above.</div>';
+    return;
+  }
+  list.innerHTML = favs.map((f, i) => `
+    <div style="display:flex;align-items:center;border-bottom:1px solid #eee">
+      <button onclick="loadFavorite(${i})" style="flex:1;min-width:0;text-align:left;padding:10px 14px;border:0;background:none;cursor:pointer;font-size:12px;font-weight:600;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.product || '(unnamed)'}</button>
+      <button onclick="deleteFavorite('${f._id}')" style="flex-shrink:0;padding:8px 10px;border:0;background:none;cursor:pointer;font-size:13px;color:#bbb;border-left:1px solid #eee" title="Remove">✕</button>
+    </div>`).join('');
+}
+
+function loadFavorite(idx) {
+  const f = favCache[idx];
+  if (!f) return;
+  const { _id, pinnedAt, ...labelData } = f;
+  loadFormData(labelData);
+  closeFavPanel();
+}
+
+function pinCurrentLabel() {
+  const data = getCurrentFormData();
+  if (!data.product.trim()) {
+    showBanner('fav-banner', 'Enter a Product Identifier before pinning.', 'warn');
+    return;
+  }
+  const favs = getFavs();
+  if (favs.some(f => (f.product || '').trim().toLowerCase() === data.product.trim().toLowerCase())) {
+    showBanner('fav-banner', `"${data.product.trim()}" is already in favorites.`, 'warn');
+    return;
+  }
+  favs.push({ ...data, _id: 'f' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), pinnedAt: Date.now() });
+  saveFavs(favs);
+  loadFavorites();
+}
+
+function deleteFavorite(docId) {
+  saveFavs(getFavs().filter(f => f._id !== docId));
+  favCache = favCache.filter(f => f._id !== docId);
+  renderFavorites(favCache);
+}
+
+/* ── Chemical Library (localStorage) ───────────────────────── */
+const LIB_KEY = 'chemLabelLibrary';
+const getLibrary  = () => { try { return JSON.parse(localStorage.getItem(LIB_KEY) || '[]'); } catch { return []; } };
+const saveLibrary = lib => localStorage.setItem(LIB_KEY, JSON.stringify(lib));
+
+let selectedLibIdx  = null;
+let comboFocusIdx   = -1;
+let _dupWarnCallback = null;
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({length: m + 1}, (_, i) => Array.from({length: n + 1}, (_, j) => i === 0 ? j : j === 0 ? i : 0));
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+function findSimilarChemicals(name, lib) {
+  const norm = name.trim().toLowerCase();
+  return lib
+    .map(c => (c.product || '').trim().toLowerCase())
+    .filter(n => {
+      if (!n || n === norm) return false;
+      const maxLen = Math.max(norm.length, n.length);
+      const threshold = Math.max(2, Math.floor(maxLen * 0.2));
+      if (levenshtein(norm, n) <= threshold) return true;
+      if (norm.length >= 5 && n.includes(norm)) return true;
+      if (n.length >= 5 && norm.includes(n)) return true;
+      return false;
+    });
+}
+
+function showDuplicateWarning(productName, similarNames, onConfirm) {
+  _dupWarnCallback = onConfirm;
+  const list = document.getElementById('dup-warn-list');
+  if (list) list.innerHTML = similarNames.map(n => `<li><strong>${n}</strong></li>`).join('');
+  const btn = document.getElementById('dup-warn-override');
+  if (btn) btn.onclick = () => { const cb = _dupWarnCallback; closeDupWarn(); if (cb) cb(); };
+  document.getElementById('dup-warn-modal').style.display = 'flex';
+}
+
+function closeDupWarn() {
+  document.getElementById('dup-warn-modal').style.display = 'none';
+  _dupWarnCallback = null;
+}
+
+function libSorted() {
+  const lib = getLibrary();
+  return lib.map((item, i) => ({ item, i })).sort((a, b) =>
+    (a.item.product || '').localeCompare(b.item.product || '')
+  );
+}
+
+function filterCombo() {
+  if (document.activeElement !== $('lib-search')) return;
+  comboFocusIdx = -1;
+  const q       = ($('lib-search')?.value || '').trim().toLowerCase();
+  const visible = q ? libSorted().filter(({ item }) => (item.product || '').toLowerCase().includes(q)) : libSorted();
+  renderComboList(visible);
+}
+
+function renderComboList(items) {
+  const input = $('lib-search');
+  const el    = $('lib-combo-list');
+  // Position fixed, anchored below the input
+  const rect  = input.getBoundingClientRect();
+  el.style.top   = rect.bottom + 'px';
+  el.style.left  = rect.left   + 'px';
+  el.style.width = rect.width  + 'px';
+  el.innerHTML = '';
+  if (!items.length) {
+    el.innerHTML = '<div class="lib-combo-item" style="color:#888;cursor:default">No matches</div>';
+  } else {
+    items.forEach(({ item, i }, listPos) => {
+      const div = document.createElement('div');
+      div.className = 'lib-combo-item' + (i === selectedLibIdx ? ' selected' : '');
+      div.dataset.idx      = i;
+      div.dataset.listPos  = listPos;
+      div.textContent = item.product || `Chemical ${i + 1}`;
+      div.addEventListener('mousedown', e => { e.preventDefault(); selectFromCombo(i); });
+      el.appendChild(div);
+    });
+  }
+  el.style.display = 'block';
+}
+
+function selectFromCombo(idx) {
+  const lib = getLibrary();
+  if (!lib[idx]) return;
+  selectedLibIdx = idx;
+  lib[idx].lastUsed = Date.now();
+  saveLibrary(lib);
+  $('lib-search').value = lib[idx].product || '';
+  $('lib-combo-list').style.display = 'none';
+  const delBtn = $('lib-del-btn');
+  if (delBtn) delBtn.style.display = 'block';
+  loadFormData(lib[idx]);
+}
+
+function openCombo() { comboFocusIdx = -1; filterCombo(); }
+
+function handleComboKey(e) {
+  const el = $('lib-combo-list');
+  if (e.key === 'Escape') {
+    if (el) el.style.display = 'none';
+    comboFocusIdx = -1;
+    return;
+  }
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Enter') return;
+  e.preventDefault();
+  // Open list if not visible — respects current search text
+  if (!el || el.style.display === 'none') openCombo();
+  const items = el ? [...el.querySelectorAll('.lib-combo-item[data-idx]')] : [];
+  if (!items.length) return;
+  if (e.key === 'ArrowDown')  comboFocusIdx = Math.min(comboFocusIdx + 1, items.length - 1);
+  else if (e.key === 'ArrowUp') comboFocusIdx = Math.max(comboFocusIdx - 1, 0);
+  else if (e.key === 'Enter') { selectFromCombo(parseInt(items[comboFocusIdx]?.dataset.idx)); return; }
+  items.forEach((item, pos) => item.classList.toggle('focused', pos === comboFocusIdx));
+  if (comboFocusIdx >= 0) items[comboFocusIdx].scrollIntoView({ block: 'nearest' });
+}
+
+function closeComboDelayed() {
+  setTimeout(() => { const el = $('lib-combo-list'); if (el) el.style.display = 'none'; }, 200);
+}
+
+function populateLibrarySelect() { /* no-op: combo reads live from library on open */ }
+
+
+function commitToLibrary(data, lib, idx) {
+  if (idx >= 0) lib[idx] = data;
+  else lib.push(data);
+  lib.sort((a, b) => (a.product || '').localeCompare(b.product || ''));
+  saveLibrary(lib);
+  selectedLibIdx = lib.findIndex(c => c.product === data.product);
+  $('lib-search').value = data.product;
+  const delBtn = $('lib-del-btn');
+  if (delBtn) delBtn.style.display = 'block';
+  writeDriveFile();
+  showSaveBanners(`"${data.product}" ${idx >= 0 ? 'updated' : 'saved'}.`, 'success');
+}
+
+function saveToLibrary() {
+  const data = getCurrentFormData();
+  if (!data.product.trim()) { showSaveBanners('Enter a Product Identifier before saving.', 'warn'); return; }
+  const lib = getLibrary();
+  const idx = lib.findIndex(c => (c.product || '').trim().toLowerCase() === data.product.trim().toLowerCase());
+  if (idx >= 0) {
+    if (!confirm(`"${data.product}" is already saved. Overwrite it?`)) return;
+    commitToLibrary(data, lib, idx);
+    return;
+  }
+  const similar = findSimilarChemicals(data.product, lib);
+  if (similar.length > 0) {
+    showDuplicateWarning(data.product, similar, () => commitToLibrary(data, getLibrary(), -1));
+    return;
+  }
+  commitToLibrary(data, lib, -1);
+}
+
+function deleteFromLibrary() {
+  if (selectedLibIdx === null) return;
+  const lib  = getLibrary();
+  const name = lib[selectedLibIdx]?.product || 'this chemical';
+  if (!confirm(`Remove "${name}" from the library?`)) return;
+  lib.splice(selectedLibIdx, 1);
+  selectedLibIdx = null;
+  $('lib-search').value = '';
+  const delBtn = $('lib-del-btn');
+  if (delBtn) delBtn.style.display = 'none';
+  saveLibrary(lib);
+  filterCombo();
+  writeDriveFile();
+}
+
+/* ── Inline banners ─────────────────────────────────────────── */
+function showBanner(id, msg, type, duration) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = 'inline-banner banner-' + (type || 'info');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(el._bt);
+  if (duration !== 0) el._bt = setTimeout(() => { el.style.display = 'none'; }, duration || 4500);
+}
+function showSaveBanners(msg, type, duration) {
+  showBanner('save-banner', msg, type, duration);
+  showBanner('save-banner-bottom', msg, type, duration);
+}
+
+/* ── Company Logo ───────────────────────────────────────────── */
+function applyLogo(dataUrl) {
+  ['lbl-logo', 's-lbl-logo'].forEach(id => {
+    const img = $(id);
+    if (!img) return;
+    if (dataUrl) { img.src = dataUrl; img.style.display = ''; }
+    else         { img.src = '';      img.style.display = 'none'; }
+  });
+}
+
+function clearForm() {
+  $('f-product').value  = '';
+  $('f-hazard').value   = '';
+  $('f-firstaid').value = '';
+  $('f-addppe').value   = '';
+  document.querySelector('input[name="signal"][value="DANGER"]').checked = true;
+  ['n-health','n-flame','n-inst'].forEach(id => $(id).value = '0');
+  $('n-spec').value   = '';
+  ['h-health','h-flame','h-react'].forEach(id => $(id).value = '0');
+  $('h-ppe').value    = 'NONE';
+  $('s-company').value = '';
+  $('s-address').value = '';
+  $('s-phone').value   = '';
+  $('s-prep').value = '';
+  $('s-date').value = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  document.querySelectorAll('.pic-toggle').forEach(cb => cb.checked = false);
   update();
 }
 
+/* ── Company logo (localStorage) ────────────────────────────── */
+const LOGO_KEY = 'chemLabelLogo';
+const getStoredLogo = () => { try { return localStorage.getItem(LOGO_KEY) || null; } catch { return null; } };
+
+const _applyLogo = applyLogo;
+applyLogo = function (dataUrl) {
+  _applyLogo(dataUrl);
+  const clr = $('s-logo-clear');
+  if (clr) clr.style.display = dataUrl ? 'inline-block' : 'none';
+  scheduleFit();
+};
+
+function handleLogoUpload(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = evt => {
+    const img = new Image();
+    img.onload = () => {
+      // Downscale so the data URL stays small enough for localStorage
+      const scale  = Math.min(1, 600 / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.max(1, Math.round(img.width  * scale));
+      canvas.height = Math.max(1, Math.round(img.height * scale));
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/png');
+      try { localStorage.setItem(LOGO_KEY, dataUrl); } catch { alert('Could not store the logo in this browser.'); }
+      applyLogo(dataUrl);
+    };
+    // SVGs and anything the canvas can't decode: keep the original file
+    img.onerror = () => {
+      try { localStorage.setItem(LOGO_KEY, evt.target.result); } catch {}
+      applyLogo(evt.target.result);
+    };
+    img.src = evt.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearLogo() {
+  try { localStorage.removeItem(LOGO_KEY); } catch {}
+  const f = $('s-logo-file');
+  if (f) f.value = '';
+  applyLogo(null);
+}
+
 /* ── Export / Import ────────────────────────────────────────── */
-function exportJSON() {
-  closeExportMenu();
-  const data = getCurrentFormData();
-  const name = (data.product.trim() || 'label').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = name + '.json'; a.click();
+function toggleDataMenu() {
+  const m = $('data-menu');
+  if (m) m.classList.toggle('open');
+}
+function closeDataMenu() {
+  const m = $('data-menu');
+  if (m) m.classList.remove('open');
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a   = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
 }
 
-function saveHTMLWithLibrary() {
-  closeExportMenu();
+function pickJSONFile(onText) {
+  const input = document.createElement('input');
+  input.type   = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => onText(evt.target.result);
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function exportJSON() {
+  closeDataMenu();
+  const data = getCurrentFormData();
+  const name = (data.product.trim() || 'label').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+  downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), name + '.json');
+}
+
+function importJSON() {
+  closeDataMenu();
+  pickJSONFile(text => {
+    try { loadFormData(JSON.parse(text)); }
+    catch { alert('Invalid JSON file. Please select a label JSON exported from this tool.'); }
+  });
+}
+
+function exportLibrary() {
+  closeDataMenu();
   const lib = getLibrary();
-  if (!lib.length) {
-    alert('No chemicals in the library yet.\nSave some chemicals first, then use this option.');
-    return;
-  }
+  if (!lib.length) { alert('No chemicals in the library yet.\nSave some chemicals first, then use this option.'); return; }
+  const who = (prompt('Your name (added to the filename):', $('s-prep').value || '') || '').trim();
+  const date = new Date().toISOString().slice(0, 10);
+  const tag  = who ? '_' + who.replace(/[^a-z0-9]/gi, '_').toLowerCase() : '';
+  downloadBlob(new Blob([JSON.stringify(lib, null, 2)], { type: 'application/json' }), `chem_label_library${tag}_${date}.json`);
+}
+
+function importLibrary() {
+  closeDataMenu();
+  pickJSONFile(text => {
+    try {
+      const incoming = JSON.parse(text);
+      if (!Array.isArray(incoming)) throw new Error('not a library');
+      const lib = getLibrary();
+      let added = 0;
+      incoming.forEach(c => {
+        if (!c || !c.product) return;
+        if (lib.some(e => (e.product || '').trim().toLowerCase() === c.product.trim().toLowerCase())) return;
+        lib.push(c); added++;
+      });
+      lib.sort((a, b) => (a.product || '').localeCompare(b.product || ''));
+      saveLibrary(lib);
+      writeDriveFile();
+      showSaveBanners(`Imported ${added} chemical${added === 1 ? '' : 's'} (${incoming.length - added} skipped as already present).`, 'success');
+    } catch {
+      alert('Invalid library file. Please select a library JSON exported from this tool.');
+    }
+  });
+}
+
+function saveHTMLWithLibrary() {
+  closeDataMenu();
+  const lib = getLibrary();
+  if (!lib.length) { alert('No chemicals in the library yet.\nSave some chemicals first, then use this option.'); return; }
 
   // Seed script: merges baked chemicals into localStorage on first open.
   // Skips any chemical whose product name already exists so it never
@@ -1622,59 +2686,13 @@ function saveHTMLWithLibrary() {
   let html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
   html = html.replace(/<script id="__lib_seed__">[\s\S]*?<\/script>\n?/g, '');
   html = html.replace('</head>', seed + '\n</head>');
-
-  const blob = new Blob([html], { type: 'text/html' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url;
-  a.download = 'quick_label_generator_with_library.html';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function importJSON() {
-  closeExportMenu();
-  const input = document.createElement('input');
-  input.type   = 'file';
-  input.accept = '.json,application/json';
-  input.onchange = e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = evt => {
-      try {
-        loadFormData(JSON.parse(evt.target.result));
-      } catch {
-        alert('Invalid JSON file. Please select a label JSON exported from this tool.');
-      }
-    };
-    reader.readAsText(file);
-  };
-  input.click();
-}
-
-/* ── Chemical Library (localStorage) ───────────────────────── */
-const LIB_KEY = 'chemLabelLibrary';
-const getLibrary  = () => { try { return JSON.parse(localStorage.getItem(LIB_KEY) || '[]'); } catch { return []; } };
-const saveLibrary = lib => localStorage.setItem(LIB_KEY, JSON.stringify(lib));
-
-function populateLibrarySelect() {
-  const sel = $('lib-select');
-  const lib = getLibrary();
-  sel.innerHTML = '<option value="">— Select a saved chemical —</option>';
-  lib.forEach((item, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = item.product || `Chemical ${i + 1}`;
-    sel.appendChild(opt);
-  });
+  downloadBlob(new Blob([html], { type: 'text/html' }), 'easy_sds_with_library.html');
 }
 
 /* ── Google Drive sync ──────────────────────────────────────── */
 // Replace with your own OAuth Client ID to enable Drive sync — see the
-// "Setting Up Google Drive Sync" section in README.md for step-by-step
-// instructions. Without this, the tool still works fully via localStorage
-// and the Export/Import JSON buttons.
+// "Setting Up Google Drive Sync" section in README.md. Without it the tool
+// still works fully via localStorage and the Export/Import buttons.
 const GOOGLE_CLIENT_ID  = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
 const DRIVE_SCOPE       = 'https://www.googleapis.com/auth/drive.file';
 const DRIVE_FILE_NAME   = 'chem_label_library.json';
@@ -1698,10 +2716,10 @@ function initGIS() {
           const local  = getLibrary();
           const merged = [...remote];
           local.forEach(c => { if (!merged.some(d => d.product === c.product)) merged.push(c); });
-          merged.sort((a, b) => a.product.localeCompare(b.product));
+          merged.sort((a, b) => (a.product || '').localeCompare(b.product || ''));
           saveLibrary(merged);
-          populateLibrarySelect();
         }
+        await writeDriveFile();
         setDriveStatus('ok', '✓ Synced with Google Drive');
       } catch (e) {
         console.error('Drive error:', e);
@@ -1709,7 +2727,9 @@ function initGIS() {
       }
     }
   });
-  $('drive-section').style.display = 'block';
+  const show = () => { const sec = $('drive-section'); if (sec) sec.style.display = 'block'; };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show);
+  else show();
 }
 
 function driveSignIn() {
@@ -1779,70 +2799,35 @@ async function readDriveFile() {
 
 async function writeDriveFile() {
   if (!gAccessToken || !gFileId) return;
-  await driveAPI(
-    `https://www.googleapis.com/upload/drive/v3/files/${gFileId}?uploadType=media`,
-    { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(getLibrary(), null, 2) }
-  );
-}
-
-function saveToLibrary() {
-  const data = getCurrentFormData();
-  if (!data.product.trim()) { alert('Enter a Product Identifier before saving to the library.'); return; }
-  const lib = getLibrary();
-  const idx = lib.findIndex(c => c.product.trim().toLowerCase() === data.product.trim().toLowerCase());
-  if (idx >= 0) {
-    if (!confirm(`"${data.product}" is already saved. Overwrite it?`)) return;
-    lib[idx] = data;
-  } else {
-    lib.push(data);
-    lib.sort((a, b) => a.product.localeCompare(b.product));
+  try {
+    await driveAPI(
+      `https://www.googleapis.com/upload/drive/v3/files/${gFileId}?uploadType=media`,
+      { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(getLibrary(), null, 2) }
+    );
+  } catch (e) {
+    console.error('Drive write failed:', e);
+    setDriveStatus('error', '⚠ Drive error — using local library');
   }
-  saveLibrary(lib);
-  populateLibrarySelect();
-  const newIdx = getLibrary().findIndex(c => c.product === data.product);
-  if (newIdx >= 0) $('lib-select').value = newIdx;
-  writeDriveFile();
-}
-
-function loadFromLibrary() {
-  const sel = $('lib-select');
-  if (!sel.value && sel.value !== 0) return;
-  const data = getLibrary()[parseInt(sel.value)];
-  if (data) loadFormData(data);
-}
-
-function deleteFromLibrary() {
-  const sel = $('lib-select');
-  if (!sel.value && sel.value !== 0) return;
-  const lib  = getLibrary();
-  const name = lib[parseInt(sel.value)]?.product || 'this chemical';
-  if (!confirm(`Remove "${name}" from the library?`)) return;
-  lib.splice(parseInt(sel.value), 1);
-  saveLibrary(lib);
-  populateLibrarySelect();
-  writeDriveFile();
-}
-
-function clearForm() {
-  $('f-product').value  = '';
-  $('f-hazard').value   = '';
-  $('f-prec').value     = '';
-  $('f-firstaid').value = '';
-  document.querySelector('input[name="signal"][value="DANGER"]').checked = true;
-  ['n-health','n-flame','n-inst'].forEach(id => $(id).value = '0');
-  $('n-spec').value   = '';
-  ['h-health','h-flame','h-react'].forEach(id => $(id).value = '0');
-  $('h-ppe').value    = 'NONE';
-  $('s-company').value = '';
-  $('s-address').value = '';
-  $('s-phone').value   = '';
-  $('s-prep').value    = '';
-  $('s-date').value    = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  document.querySelectorAll('.pic-toggle').forEach(cb => cb.checked = false);
-  update();
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
 </script>
+
+<!-- ── Duplicate warning modal ── -->
+<div id="dup-warn-modal" onclick="if(event.target===this)closeDupWarn()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:8px;padding:28px 32px;max-width:440px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.25)">
+    <div style="font-size:30px;text-align:center;margin-bottom:10px">⚠️</div>
+    <h2 style="margin:0 0 8px;font-size:17px;color:#333;text-align:center">Possible Duplicate</h2>
+    <p style="margin:0 0 14px;font-size:13px;color:#555;text-align:center">The library already contains chemical(s) with a similar name:</p>
+    <ul id="dup-warn-list" style="margin:0 0 16px;padding:0 0 0 20px;font-size:13px;color:#333;line-height:1.9"></ul>
+    <p style="margin:0 0 22px;font-size:12px;color:#888;text-align:center">Make sure this isn't already covered before saving a new entry.</p>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button onclick="closeDupWarn()" style="background:#eee;color:#333;border:none;border-radius:4px;padding:9px 22px;font-size:13px;font-weight:600;cursor:pointer">Go Back</button>
+      <button id="dup-warn-override" style="background:#c0392b;color:#fff;border:none;border-radius:4px;padding:9px 22px;font-size:13px;font-weight:700;cursor:pointer">Save Anyway</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
