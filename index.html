@@ -2721,32 +2721,40 @@ let gAccessToken = null;
 let gFileId      = null;
 
 function initGIS() {
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: GOOGLE_CLIENT_ID,
-    scope: DRIVE_SCOPE,
-    callback: async resp => {
-      if (resp.error) { setDriveStatus('error', 'Auth error — using local library'); return; }
-      gAccessToken = resp.access_token;
-      setDriveStatus('loading', 'Loading library from Drive…');
-      try {
-        gFileId = await findOrCreateDriveFile();
-        const remote = await readDriveFile();
-        if (remote && remote.length) {
-          const local  = getLibrary();
-          const merged = [...remote];
-          local.forEach(c => { if (!merged.some(d => d.product === c.product)) merged.push(c); });
-          merged.sort((a, b) => (a.product || '').localeCompare(b.product || ''));
-          saveLibrary(merged);
+  // With the placeholder Client ID, Google rejects sign-in (Error 401: invalid_client),
+  // so leave Drive sync off and say so instead of showing a button that fails.
+  const configured = !GOOGLE_CLIENT_ID.startsWith('YOUR_');
+  if (configured) {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: DRIVE_SCOPE,
+      callback: async resp => {
+        if (resp.error) { setDriveStatus('error', 'Auth error — using local library'); return; }
+        gAccessToken = resp.access_token;
+        setDriveStatus('loading', 'Loading library from Drive…');
+        try {
+          gFileId = await findOrCreateDriveFile();
+          const remote = await readDriveFile();
+          if (remote && remote.length) {
+            const local  = getLibrary();
+            const merged = [...remote];
+            local.forEach(c => { if (!merged.some(d => d.product === c.product)) merged.push(c); });
+            merged.sort((a, b) => (a.product || '').localeCompare(b.product || ''));
+            saveLibrary(merged);
+          }
+          await writeDriveFile();
+          setDriveStatus('ok', '✓ Synced with Google Drive');
+        } catch (e) {
+          console.error('Drive error:', e);
+          setDriveStatus('error', '⚠ Drive error — using local library');
         }
-        await writeDriveFile();
-        setDriveStatus('ok', '✓ Synced with Google Drive');
-      } catch (e) {
-        console.error('Drive error:', e);
-        setDriveStatus('error', '⚠ Drive error — using local library');
       }
-    }
-  });
-  const show = () => { const sec = $('drive-section'); if (sec) sec.style.display = 'block'; };
+    });
+  }
+  const show = () => {
+    const sec = $('drive-section'); if (sec) sec.style.display = 'block';
+    if (!configured) setDriveStatus('unconfigured', 'Drive sync not set up on this copy — library saved locally');
+  };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show);
   else show();
 }
@@ -2770,6 +2778,8 @@ function setDriveStatus(state, msg) {
     btn.textContent = 'Disconnect Drive'; btn.style.background = '#cc3300';
   } else if (state === 'loading') {
     btn.textContent = 'Connecting…'; btn.style.background = '#888';
+  } else if (state === 'unconfigured') {
+    btn.disabled = true; btn.style.background = '#888'; btn.style.cursor = 'not-allowed';
   } else {
     btn.textContent = 'Connect Google Drive'; btn.style.background = '#0066cc';
   }

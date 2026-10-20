@@ -44,7 +44,7 @@ Save and reload chemicals you use regularly. The library is stored in your brows
 - **Remove Selected** — appears after a chemical is loaded; deletes it from the library
 - **+ Save Current to Library** — saves the current form as a new entry (or overwrites if the product name matches). If the name is very close to an existing chemical (for example a typo or a variant spelling), you get a **Possible Duplicate** warning and can go back or save anyway.
 
-> **Google Drive Sync** — Click **Connect Google Drive** to sync your library across devices. Your library is stored as `chem_label_library.json` in your Drive. Local and remote libraries are merged on sign-in — no data is overwritten. If you're self-hosting this tool, Drive sync needs your own Google OAuth Client ID first — see [Setting Up Google Drive Sync](#setting-up-google-drive-sync-optional) below.
+> **Google Drive Sync** — Click **Connect Google Drive** to sync your library across devices. Your library is stored as `chem_label_library.json` in your Drive. Local and remote libraries are merged on sign-in — no data is overwritten. If you're self-hosting this tool, Drive sync needs your own Google OAuth Client ID first — see [Setting Up Google Drive Sync](#setting-up-google-drive-sync-optional) below. Until a Client ID is added, the button stays disabled with a note instead of sending visitors to a Google sign-in error.
 
 ---
 
